@@ -5,61 +5,96 @@ const FontLoader = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap');
     * { font-family: 'Barlow', sans-serif; box-sizing: border-box; }
-    h1,h2,h3 { font-family: 'Barlow Condensed', sans-serif; }
+    h1,h2,h3,h4 { font-family: 'Barlow Condensed', sans-serif; }
     :root {
-      --gold: #C8922A; --gold-light: #E5B04A;
-      --charcoal: #1A1A1A; --slate: #2C2C2C; --mid: #3D3D3D;
-      --border: #404040; --text-muted: #9A9A9A; --cream: #F5F0E8;
+      --gold: #c8892a;
+      --gold-light: #e5c14a;
+      --gold-dim: rgba(75, 61, 34, 0.12);
+      --gold-border: rgba(42, 176, 200, 0.28);
+      /* Updated Navy palette — deeper, richer */
+      --navy-900: #020810;
+      --navy-800: #071120;
+      --navy-700: #0C1A30;
+      --navy-600: #111F3A;
+      --navy-500: #172C52;
+      --navy-400: #1E376A;
+      --border: #172A45;
+      --border-light: #223860;
+      --text-muted: #6A84A8;
+      --text-soft: #96AECE;
+      --cream: #EDF2FF;
+      /* legacy aliases kept for compatibility */
+      --charcoal: #020810;
+      --slate: #0C1A30;
+      --mid: #172C52;
     }
     html { scroll-behavior: smooth; }
-    body { margin: 0; background: var(--charcoal); }
+    body { margin: 0; background: var(--navy-900); }
+
     .gold-btn {
-      background: linear-gradient(135deg, #C8922A, #E5B04A);
-      color: #1A1A1A; font-weight: 700; letter-spacing: 0.05em; transition: all 0.2s;
-      cursor: pointer; border: none;
+      background: linear-gradient(135deg, #c87e2a 0%, #e5a74a 50%, #C8922A 100%);
+      background-size: 200% auto;
+      color: #020810; font-weight: 700; letter-spacing: 0.06em;
+      transition: all 0.3s; cursor: pointer; border: none;
     }
-    .gold-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+    .gold-btn:hover { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(200,146,42,0.4); }
+
     .outline-btn {
-      border: 1.5px solid #C8922A; color: #C8922A;
-      transition: all 0.2s; background: transparent; cursor: pointer;
+      border: 1.5px solid var(--gold); color: var(--gold);
+      transition: all 0.25s; background: transparent; cursor: pointer;
     }
-    .outline-btn:hover { background: #C8922A; color: #1A1A1A; }
-    .card-hover { transition: all 0.25s; }
-    .card-hover:hover { transform: translateY(-5px); border-color: #C8922A !important; box-shadow: 0 12px 40px rgba(200,146,42,0.15); }
+    .outline-btn:hover { background: var(--gold); color: var(--navy-900); box-shadow: 0 6px 20px rgba(200,146,42,0.3); }
+
+    .card-hover { transition: all 0.28s; }
+    .card-hover:hover {
+      transform: translateY(-5px);
+      border-color: var(--gold) !important;
+      box-shadow: 0 0 0 1px var(--gold), 0 16px 48px rgba(200, 137, 42, 0.15);
+    }
+
     .section-line::before {
-      content: ''; display: inline-block; width: 40px; height: 3px;
-      background: #C8922A; margin-right: 12px; vertical-align: middle;
+      content: ''; display: inline-block; width: 40px; height: 2px;
+      background: var(--gold); margin-right: 12px; vertical-align: middle;
     }
-    input, textarea {
-      background: #2C2C2C !important; border: 1px solid #404040 !important;
-      color: #F5F0E8 !important; border-radius: 4px; padding: 12px 16px;
-      width: 100%; outline: none; transition: border-color 0.2s; font-family: 'Barlow', sans-serif;
+
+    input, textarea, select {
+      background: var(--navy-700) !important;
+      border: 1px solid var(--border-light) !important;
+      color: var(--cream) !important;
+      border-radius: 6px; padding: 12px 16px;
+      width: 100%; outline: none; transition: border-color 0.2s;
+      font-family: 'Barlow', sans-serif; font-size: 14px;
     }
-    input:focus, textarea:focus { border-color: #C8922A !important; }
-    input::placeholder, textarea::placeholder { color: #9A9A9A; }
+    input:focus, textarea:focus, select:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(200,146,42,0.1); }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
     .nav-link {
-      position: relative; color: #9A9A9A; transition: color 0.2s;
-      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+      position: relative; color: var(--text-muted); transition: color 0.2s;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
       background: none; border: none; cursor: pointer;
     }
-    .nav-link:hover, .nav-link.active { color: #C8922A; }
+    .nav-link:hover, .nav-link.active { color: var(--gold); }
     .nav-link::after {
       content: ''; position: absolute; bottom: -3px; left: 0;
-      width: 0; height: 1.5px; background: #C8922A; transition: width 0.25s;
+      width: 0; height: 1.5px; background: var(--gold); transition: width 0.25s;
     }
     .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
     .faq-item summary { list-style: none; cursor: pointer; }
     .faq-item summary::-webkit-details-marker { display: none; }
+
     @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
     @keyframes slideIn { from { opacity:0; transform:translateX(-30px); } to { opacity:1; transform:translateX(0); } }
     .fade-up { animation: fadeUp 0.7s ease forwards; }
     .slide-in { animation: slideIn 0.7s ease forwards; }
-    .star { color: #C8922A; }
+    .star { color: var(--gold); }
+
     .hero-slide { position: absolute; inset: 0; transition: opacity 1.2s ease; }
+
     .whatsapp-float {
       position: fixed; bottom: 28px; right: 28px; z-index: 1000;
       width: 60px; height: 60px; border-radius: 50%;
-      background: linear-gradient(135deg, #25D366, #128C7E);
+      background: #25D366;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 6px 24px rgba(37,211,102,0.45);
       cursor: pointer; transition: all 0.25s; border: none; text-decoration: none;
@@ -67,31 +102,61 @@ const FontLoader = () => (
     .whatsapp-float:hover { transform: scale(1.12) translateY(-3px); box-shadow: 0 10px 32px rgba(37,211,102,0.55); }
     .whatsapp-tooltip {
       position: absolute; right: 70px; top: 50%; transform: translateY(-50%);
-      background: #111; color: #F5F0E8; font-size: 12px; font-weight: 600;
+      background: var(--navy-800); color: var(--cream); font-size: 12px; font-weight: 600;
       padding: 6px 12px; border-radius: 6px; white-space: nowrap;
       opacity: 0; transition: opacity 0.2s; pointer-events: none;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
     }
     .whatsapp-float:hover .whatsapp-tooltip { opacity: 1; }
-    .img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.7) 100%); }
-    .process-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--border); z-index: 0; }
+
+    .img-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(2,8,16,0.35) 0%, rgba(2,8,16,0.75) 100%); }
+
     @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
     .pulse { animation: pulse 2s ease-in-out infinite; }
-    .social-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 42px; height: 42px; border-radius: 10px; transition: all 0.2s;
-      border: 1px solid var(--border); cursor: pointer; text-decoration: none;
+
+    .social-icon {
+      width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+      justify-content: center; cursor: pointer; transition: all 0.22s; text-decoration: none;
+      border: 1px solid var(--border-light); background: var(--navy-700);
     }
-    .social-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(200,146,42,0.25); }
-    @keyframes shimmer { 0%{background-position:-200% center;} 100%{background-position:200% center;} }
-    .testimonial-card { transition: all 0.3s; }
-    .testimonial-card:hover { transform: translateY(-6px); }
-    .why-us-card { transition: all 0.3s; position: relative; overflow: hidden; }
-    .why-us-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg,#C8922A,#E5B04A); transform: scaleX(0); transition: transform 0.3s; transform-origin: left; }
-    .why-us-card:hover::before { transform: scaleX(1); }
-    .team-card { transition: all 0.3s; overflow: hidden; }
-    .team-card:hover .team-overlay { opacity: 1; }
-    .team-overlay { position: absolute; inset: 0; background: rgba(200,146,42,0.88); opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    .social-icon:hover { transform: translateY(-3px); border-color: var(--gold); background: var(--gold-dim); }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(2,8,16,0.92); z-index: 2000;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      backdrop-filter: blur(8px);
+    }
+    .modal-box {
+      background: var(--navy-800); border: 1px solid var(--border-light);
+      border-radius: 16px; max-width: 860px; width: 100%; max-height: 92vh; overflow-y: auto;
+    }
+
+    .tab-btn {
+      padding: 8px 20px; border-radius: 6px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active { background: var(--gold); color: var(--navy-900); border: none; }
+    .tab-btn:not(.active) { background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); }
+    .tab-btn:not(.active):hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Team horizontal card */
+    .team-hcard {
+      display: flex; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border-light);
+      background: var(--navy-800);
+      transition: all 0.3s; cursor: pointer;
+    }
+    .team-hcard:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px var(--gold), 0 20px 56px rgba(200,146,42,0.14);
+      transform: translateY(-4px);
+    }
+    .team-hcard:hover .team-hcard-photo img { transform: scale(1.06); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--navy-900); }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
   `}</style>
 );
 
@@ -112,12 +177,14 @@ const IMGS = {
   about: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=80",
   aboutOffice: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&q=80",
   team: [
-    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80",
-    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
-    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80",
-    "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80",
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&q=85",
+    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=85",
+    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=85",
+    "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&q=85",
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=85",
+    "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=600&q=85",
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=85",
+    "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=600&q=85",
   ],
   services: [
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80",
@@ -135,24 +202,33 @@ const IMGS = {
     "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=700&q=80",
     "https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=700&q=80",
   ],
+  projectDetails: [
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
+    "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&q=80",
+    "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
+  ],
   blog: [
     "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80",
     "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80",
     "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=700&q=80",
     "https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=700&q=80",
   ],
-  testimonialsBg: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1400&q=80",
-  whyUsBg: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1400&q=80",
-  teamBg: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=80",
   ctaBg: "https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=1400&q=80",
   contactBg: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80",
   pricingBg: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=80",
-  locationBg: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=80",
+  whyUsBg: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1400&q=80",
+  teamHero: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1400&q=80",
+  // ── FIXED: All 4 culture images now have valid working Unsplash URLs ──
+  cultureOffice: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
+  cultureConstruction: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+  cultureTeam: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
+  cultureAwards: "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800&q=80",
 };
 
 // ── Data ──────────────────────────────────────────────────────────────────
 const data = {
-  navbar: { logo: "BuildCore", links: ["Home","About","Services","Pricing","Projects","Why Us","Testimonials","Team","Blog","FAQ","Contact"] },
+  navbar: { logo: "BuildCore", links: ["Home","About","Services","Why Us","Team","Pricing","Projects","Blog","FAQ","Contact"] },
   home: {
     stats: [
       { value: "500+", label: "Projects Completed" },
@@ -190,13 +266,51 @@ const data = {
       "Safety as our non-negotiable priority",
       "Innovation driving every project forward",
     ],
-    team: [
-      { name: "Arjun Mehta", role: "Founder & CEO", exp: "20+ years" },
-      { name: "Priya Sharma", role: "Head of Projects", exp: "14 years" },
-      { name: "Vikram Rao", role: "Chief Architect", exp: "18 years" },
-      { name: "Deepa Iyer", role: "Interior Lead", exp: "12 years" },
-    ],
     awards: ["Best Construction Company — Karnataka 2023", "ISO 9001:2015 Certified", "CREDAI Member", "Green Building Council Partner"],
+  },
+  team: [
+    { name: "Arjun Mehta", role: "Founder & CEO", exp: "20+ years", dept: "Leadership", projects: 300, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Arjun founded BuildCore in 2009 with a vision to redefine construction standards in India. A civil engineering graduate from IIT Bombay, he has personally led over 300 landmark projects across residential, commercial, and infrastructure sectors.", skills: ["Strategic Leadership", "Civil Engineering", "Business Development", "Project Finance"] },
+    { name: "Priya Sharma", role: "Head of Projects", exp: "14 years", dept: "Operations", projects: 180, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Priya oversees all project delivery operations, ensuring timelines, budgets, and quality benchmarks are met across every active site. Known for her meticulous planning and zero-surprise execution across 180+ projects.", skills: ["Project Management", "Site Operations", "Risk Management", "Team Leadership"] },
+    { name: "Vikram Rao", role: "Chief Architect", exp: "18 years", dept: "Design", projects: 220, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "An award-winning architect who has designed iconic residential and commercial landmarks across India. Vikram brings an international perspective — having worked on projects in Singapore and Dubai — to every design challenge.", skills: ["Architecture", "3D Visualization", "Sustainable Design", "AutoCAD / Revit"] },
+    { name: "Deepa Iyer", role: "Interior Design Lead", exp: "12 years", dept: "Design", projects: 140, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Deepa creates stunning interiors that balance aesthetics with functionality. Her work has been featured in Architectural Digest India and Elle Décor. She leads a team of 18 interior designers across all projects.", skills: ["Interior Design", "Space Planning", "Material Sourcing", "Client Styling"] },
+    { name: "Rohan Desai", role: "Structural Engineer", exp: "16 years", dept: "Engineering", projects: 260, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Rohan ensures every structure BuildCore builds is engineered to outlast generations. He oversees all soil testing, foundation design, seismic analysis, and structural audits from concept to completion.", skills: ["Structural Analysis", "Foundation Engineering", "Seismic Design", "AutoCAD Structural"] },
+    { name: "Nisha Patel", role: "Client Relations Manager", exp: "9 years", dept: "Client Success", projects: 400, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Nisha is the face clients interact with throughout their entire project journey. She ensures transparent communication and complete satisfaction at every milestone — managing relationships across 400+ completed projects.", skills: ["Client Management", "Communication", "CRM Systems", "Conflict Resolution"] },
+    { name: "Sameer Joshi", role: "Site Director", exp: "15 years", dept: "Operations", projects: 190, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Sameer manages on-ground operations across all active construction sites, coordinating subcontractors, materials logistics, and daily progress tracking to keep every project on time and on budget.", skills: ["Site Management", "Safety Compliance", "Contractor Relations", "Scheduling"] },
+    { name: "Kavya Menon", role: "Sustainability Lead", exp: "10 years", dept: "Green Initiatives", projects: 80, linkedin: "https://linkedin.com", instagram: "https://instagram.com", bio: "Kavya drives BuildCore's green building program — from LEED certifications and solar integrations to eco-material sourcing. She has overseen sustainability strategy on over 80 projects, saving clients an estimated ₹12 Cr in lifecycle energy costs.", skills: ["LEED Consulting", "Eco Materials", "Energy Auditing", "Solar Systems"] },
+  ],
+  whyUs: {
+    headline: "Why 500+ Families & Businesses Chose BuildCore",
+    subtitle: "We don't just build structures — we build trust, one project at a time.",
+    stats: [
+      { value: "500+", label: "Projects Delivered", icon: "🏗️" },
+      { value: "₹0", label: "Hidden Charges. Ever.", icon: "💰" },
+      { value: "48hr", label: "Quote Turnaround", icon: "⚡" },
+      { value: "10yr", label: "Max Warranty", icon: "🛡️" },
+    ],
+    pillars: [
+      { icon: "🔍", title: "Full Transparency", description: "Itemized quotes, weekly reports, real-time dashboards. You always know where your money goes and what's happening on site.", highlight: "No surprise costs" },
+      { icon: "🏆", title: "Award-Winning Quality", description: "ISO 9001:2015 certified processes, ISI-certified materials, and 6-stage quality inspections at every phase of construction.", highlight: "ISO Certified" },
+      { icon: "👷", title: "In-House Expertise", description: "Unlike most contractors, we employ our own engineers, architects, and site managers — no subcontracting your dreams.", highlight: "200+ In-house experts" },
+      { icon: "⏰", title: "Strict Timelines", description: "92% of our projects have been delivered on or before the committed date. We treat deadlines as promises, not estimates.", highlight: "92% on-time record" },
+      { icon: "🌿", title: "Sustainable Practices", description: "Green building materials, energy-efficient designs, and LEED consultation are standard offerings — not premium add-ons.", highlight: "LEED Certified designs" },
+      { icon: "📱", title: "Tech-Enabled Projects", description: "Live project tracking, digital approvals, progress photo updates, and a dedicated project app for every Premium/Luxury client.", highlight: "Real-time updates" },
+    ],
+    comparison: [
+      { feature: "Transparent Itemized Quotes", us: true, others: false },
+      { feature: "In-House Engineers (No Subcontracting)", us: true, others: false },
+      { feature: "Dedicated Project Manager", us: true, others: false },
+      { feature: "Weekly Progress Reports", us: true, others: false },
+      { feature: "Structural Warranty (up to 10 years)", us: true, others: false },
+      { feature: "Government Approval Handling", us: true, others: false },
+      { feature: "3D Design Visualization", us: true, others: false },
+      { feature: "Post-Handover Support", us: true, others: false },
+    ],
+    testimonialHighlight: {
+      quote: "I've worked with three other builders before BuildCore. The difference is night and day — in transparency, in quality, and in how much they genuinely care. Our villa was delivered 12 days ahead of schedule.",
+      name: "Meera Krishnan",
+      role: "Homeowner, Pune",
+      avatar: "MK"
+    }
   },
   services: [
     { icon: "🏠", title: "Residential Construction", description: "Custom homes built with precision engineering and modern design philosophy.", items: ["Villa Construction", "Luxury Apartments", "Row Houses", "Renovation & Remodeling"] },
@@ -212,38 +326,54 @@ const data = {
     { plan: "Luxury", price: "₹4,000", unit: "per sq ft", badge: null, features: ["Premium Imported Materials", "Bespoke Design & Architecture", "Full Interior Package", "10 Year Warranty", "Real-time Progress Dashboard", "Senior PM + Architect", "Smart Home Integration", "Landscape Design"], cta: "Get Started" },
   ],
   projects: [
-    { title: "Whitefield Luxury Villas", type: "Residential", area: "4,200 sq ft", year: "2024", location: "Bangalore" },
-    { title: "TechHub Office Complex", type: "Commercial", area: "28,000 sq ft", year: "2024", location: "Hyderabad" },
-    { title: "Coastal Retreat", type: "Residential", area: "6,800 sq ft", year: "2023", location: "Goa" },
-    { title: "Grand Retail Mall", type: "Commercial", area: "85,000 sq ft", year: "2023", location: "Chennai" },
-    { title: "Skyline Apartments", type: "Residential", area: "12,500 sq ft", year: "2023", location: "Pune" },
-    { title: "Corporate HQ — Infra Co.", type: "Commercial", area: "42,000 sq ft", year: "2022", location: "Mumbai" },
+    {
+      title: "Whitefield Luxury Villas", type: "Residential", area: "4,200 sq ft", year: "2024", location: "Bangalore",
+      client: "Private Homeowner", duration: "14 months", value: "₹2.8 Cr",
+      description: "A stunning cluster of 6 premium villas featuring smart home automation, landscaped gardens, and a community pool. Designed with a modern tropical aesthetic.",
+      highlights: ["Smart Home Integration", "Rainwater Harvesting", "Community Pool", "Landscaped Gardens"],
+      gallery: [0, 1, 2, 3],
+    },
+    {
+      title: "TechHub Office Complex", type: "Commercial", area: "28,000 sq ft", year: "2024", location: "Hyderabad",
+      client: "TechHub Ventures Pvt. Ltd.", duration: "18 months", value: "₹14.5 Cr",
+      description: "A cutting-edge 7-floor commercial complex with open-plan offices, conference suites, a rooftop café, and LEED Gold certification.",
+      highlights: ["LEED Gold Certified", "Rooftop Café", "EV Charging Bays", "Seismic-Safe Structure"],
+      gallery: [0, 1, 2, 3],
+    },
+    {
+      title: "Coastal Retreat", type: "Residential", area: "6,800 sq ft", year: "2023", location: "Goa",
+      client: "Mr. Sameer D'Souza", duration: "16 months", value: "₹4.2 Cr",
+      description: "An oceanfront private villa blending contemporary architecture with natural stone and wood. Includes a private pool deck and outdoor entertainment zone.",
+      highlights: ["Oceanfront Location", "Private Pool Deck", "Natural Stone Finish", "Outdoor Cinema"],
+      gallery: [0, 1, 2, 3],
+    },
+    {
+      title: "Grand Retail Mall", type: "Commercial", area: "85,000 sq ft", year: "2023", location: "Chennai",
+      client: "Grand Retail Corp.", duration: "28 months", value: "₹48 Cr",
+      description: "A landmark multi-level retail destination with 120 stores, 2 food courts, an IMAX theatre, and 600 parking slots in the heart of Chennai.",
+      highlights: ["120 Retail Stores", "IMAX Theatre", "600 Parking Slots", "Central HVAC System"],
+      gallery: [0, 1, 2, 3],
+    },
+    {
+      title: "Skyline Apartments", type: "Residential", area: "12,500 sq ft", year: "2023", location: "Pune",
+      client: "Skyline Realty Group", duration: "20 months", value: "₹7.8 Cr",
+      description: "A boutique residential tower with 18 premium 3BHK apartments, a rooftop terrace, and a fully-equipped fitness centre.",
+      highlights: ["18 Premium 3BHK Units", "Rooftop Terrace", "Fitness Centre", "EV Parking"],
+      gallery: [0, 1, 2, 3],
+    },
+    {
+      title: "Corporate HQ — Infra Co.", type: "Commercial", area: "42,000 sq ft", year: "2022", location: "Mumbai",
+      client: "Infra Co. Ltd.", duration: "22 months", value: "₹22 Cr",
+      description: "Infra Co.'s flagship headquarters featuring a grand atrium lobby, 8 floors of executive offices, a training auditorium, and a sky garden.",
+      highlights: ["Grand Atrium Lobby", "Training Auditorium", "Sky Garden", "24/7 Backup Power"],
+      gallery: [0, 1, 2, 3],
+    },
   ],
   testimonials: [
-    { name: "Ravi Kumar", company: "Homeowner", location: "Bangalore", feedback: "BuildCore delivered our dream villa on time and within budget. The quality of construction and finishing exceeded every expectation. Professional, transparent, and genuinely caring team.", rating: 5, img: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=100&q=80" },
-    { name: "Anita Reddy", company: "Real Estate Developer", location: "Hyderabad", feedback: "I've worked with many contractors, but BuildCore is on a different level. Exceptional quality control, proactive communication, and flawless execution on our 28,000 sq ft office project.", rating: 5, img: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&q=80" },
-    { name: "Suresh Nair", company: "Business Owner", location: "Chennai", feedback: "Our retail outlet was handed over ahead of schedule. The project manager kept us updated daily. Zero surprises — pure professionalism.", rating: 5, img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" },
-    { name: "Meera Krishnan", company: "Homeowner", location: "Pune", feedback: "From design consultation to final handover, BuildCore was outstanding. Our home is more beautiful than we ever imagined. Worth every rupee.", rating: 5, img: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&q=80" },
-    { name: "Rajesh Patel", company: "Hotel Developer", location: "Mumbai", feedback: "Built our boutique hotel on the Konkan coast. Impeccable attention to detail, premium finishes, and delivered 3 weeks early. Highly recommend BuildCore.", rating: 5, img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80" },
-    { name: "Kavitha Iyer", company: "Software Executive", location: "Bangalore", feedback: "Their interior design team transformed our apartment into a masterpiece. Clean lines, smart storage, and a finish that rivals five-star hotels.", rating: 5, img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&q=80" },
-  ],
-  whyUs: [
-    { icon: "🏆", title: "Award-Winning Quality", desc: "Recognised as Karnataka's Best Construction Company 2023. ISO 9001:2015 certified processes ensure world-class quality at every stage.", stat: "10+ Awards" },
-    { icon: "🔐", title: "No Hidden Costs", desc: "Our itemised quotes are 100% transparent. Every rupee is accounted for. Scope changes require written approval — no surprises, ever.", stat: "Zero Surprises" },
-    { icon: "⏰", title: "On-Time Guarantee", desc: "98% of our projects are delivered on schedule. We use agile project management tools and weekly milestone tracking to stay on target.", stat: "98% On-Time" },
-    { icon: "🌱", title: "Eco-Friendly Builds", desc: "We integrate sustainable materials, rainwater harvesting, and solar solutions into our projects — reducing carbon footprint without extra cost.", stat: "LEED Certified" },
-    { icon: "📱", title: "Real-Time Updates", desc: "Get live project dashboards, weekly photo updates, and a dedicated project manager on call — you're never in the dark.", stat: "24/7 Access" },
-    { icon: "🛡️", title: "Up to 10-Year Warranty", desc: "Our Luxury plan includes a 10-year comprehensive structural warranty — the longest in the industry. Because we build to outlast.", stat: "10-Year Cover" },
-    { icon: "🤝", title: "Trusted by 500+ Families", desc: "From first-time homeowners to seasoned developers — our client list spans all budgets and building types across India.", stat: "500+ Projects" },
-    { icon: "🧠", title: "In-House Design Team", desc: "Architecture, interiors, landscaping, and 3D visualisation — all under one roof. No third-party design agencies, no miscommunication.", stat: "Full-Stack Team" },
-  ],
-  team: [
-    { name: "Arjun Mehta", role: "Founder & CEO", exp: "20+ years", bio: "Civil engineering graduate from IIT Bombay. Founded BuildCore in 2009 with a vision to redefine construction quality in India.", linkedin: "#" },
-    { name: "Priya Sharma", role: "Head of Projects", exp: "14 years", bio: "Expert in large-scale commercial project delivery. Manages a portfolio of ₹500Cr+ in construction projects across South India.", linkedin: "#" },
-    { name: "Vikram Rao", role: "Chief Architect", exp: "18 years", bio: "Award-winning architect with projects across 12 Indian cities. Specialises in biophilic design and sustainable architecture.", linkedin: "#" },
-    { name: "Deepa Iyer", role: "Interior Design Lead", exp: "12 years", bio: "Former lead designer at one of Mumbai's top interior firms. Brings luxury aesthetics to every living space she touches.", linkedin: "#" },
-    { name: "Rahul Menon", role: "Structural Engineer", exp: "15 years", bio: "Certified structural expert with expertise in earthquake-resistant design, having led projects in seismic zones III and IV.", linkedin: "#" },
-    { name: "Sunita Kapoor", role: "Client Relations Head", exp: "10 years", bio: "Ensures every client has a stress-free journey from consultation to final handover. Personally oversees all client communications.", linkedin: "#" },
+    { name: "Ravi Kumar", company: "Homeowner", location: "Bangalore", feedback: "BuildCore delivered our dream villa on time and within budget. The quality of construction and finishing exceeded every expectation. Professional, transparent, and genuinely caring team.", rating: 5 },
+    { name: "Anita Reddy", company: "Real Estate Developer", location: "Hyderabad", feedback: "I've worked with many contractors, but BuildCore is on a different level. Exceptional quality control, proactive communication, and flawless execution on our 28,000 sq ft office project.", rating: 5 },
+    { name: "Suresh Nair", company: "Business Owner", location: "Chennai", feedback: "Our retail outlet was handed over ahead of schedule. The project manager kept us updated daily. Zero surprises — pure professionalism.", rating: 5 },
+    { name: "Meera Krishnan", company: "Homeowner", location: "Pune", feedback: "From design consultation to final handover, BuildCore was outstanding. Our home is more beautiful than we ever imagined. Worth every rupee.", rating: 5 },
   ],
   blog: [
     { title: "Top 10 Modern House Design Trends in India 2026", summary: "From biophilic design to smart home integration — explore the trends reshaping Indian homes this year.", category: "Design", date: "Apr 10, 2026", read: "5 min read" },
@@ -264,14 +394,14 @@ const data = {
     phone: "+91 98765 43210",
     whatsapp: "919876543210",
     address: "12, Brigade Road, Bangalore — 560001, Karnataka",
-    mapAddress: "Brigade Road, Bangalore, Karnataka 560001",
     hours: "Mon–Sat: 9:00 AM – 6:00 PM",
-    instagram: "https://www.instagram.com/buildcore.in",
-    facebook: "https://www.facebook.com/buildcore.in",
-    linkedin: "https://www.linkedin.com/company/buildcore",
-    youtube: "https://www.youtube.com/@buildcore",
-    lat: 12.9716,
-    lng: 77.5946,
+    mapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.9921!2d77.5945!3d12.9716!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBrigade%20Road%2C%20Bengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1700000000000",
+  },
+  social: {
+    instagram: "https://www.instagram.com/",
+    facebook: "https://www.facebook.com/",
+    linkedin: "https://www.linkedin.com/",
+    youtube: "https://www.youtube.com/",
   },
   footer: {
     text: "© 2026 BuildCore Constructions Pvt. Ltd. All rights reserved.",
@@ -279,6 +409,37 @@ const data = {
     tagline: "Built on Trust. Delivered with Pride.",
   },
 };
+
+// ── Social Icons SVGs ──────────────────────────────────────────────────────
+const InstagramIcon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+    <circle cx="12" cy="12" r="4"/>
+    <circle cx="17.5" cy="6.5" r="1" fill={color} stroke="none"/>
+  </svg>
+);
+const FacebookIcon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+  </svg>
+);
+const LinkedInIcon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/>
+    <circle cx="4" cy="4" r="2"/>
+  </svg>
+);
+const YouTubeIcon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+    <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#1A1A1A"/>
+  </svg>
+);
+const WhatsAppSVG = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="currentColor">
+    <path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.648 4.83 1.783 6.863L2 30l7.343-1.76A13.94 13.94 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm6.35 18.912c-.347-.174-2.057-1.015-2.376-1.13-.32-.117-.553-.174-.786.174-.233.348-.903 1.13-1.107 1.363-.204.232-.407.26-.754.087-.347-.174-1.465-.54-2.79-1.72-1.03-.918-1.726-2.052-1.93-2.4-.203-.347-.022-.534.153-.707.157-.155.347-.405.52-.607.175-.203.233-.348.349-.58.116-.233.058-.437-.03-.61-.087-.174-.786-1.893-1.077-2.594-.284-.681-.572-.588-.786-.599l-.668-.012c-.233 0-.61.087-.93.435-.32.347-1.223 1.194-1.223 2.913s1.252 3.38 1.427 3.613c.174.232 2.464 3.763 5.97 5.277.834.36 1.485.575 1.993.736.837.267 1.6.23 2.202.14.672-.101 2.057-.842 2.348-1.655.29-.813.29-1.51.203-1.656-.086-.145-.32-.232-.668-.406z"/>
+  </svg>
+);
 
 // ── Shared UI ──────────────────────────────────────────────────────────────
 const SectionLabel = ({ children }) => (
@@ -292,57 +453,35 @@ const SectionHeading = ({ children, center = false }) => (
     {children}
   </h2>
 );
-const Stars = ({ count = 5 }) => (
-  <div className="flex gap-0.5">{[...Array(count)].map((_, i) => <span key={i} className="star">★</span>)}</div>
+const Stars = () => (
+  <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <span key={i} className="star">★</span>)}</div>
 );
 
-// ── Social Icons ───────────────────────────────────────────────────────────
-const InstagramIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-  </svg>
-);
-const FacebookIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  </svg>
-);
-const LinkedInIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-  </svg>
-);
-const YouTubeIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/>
-  </svg>
-);
-const WhatsAppIcon = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 32 32" fill="currentColor">
-    <path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.648 4.83 1.783 6.863L2 30l7.343-1.76A13.94 13.94 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm6.35 18.912c-.347-.174-2.057-1.015-2.376-1.13-.32-.117-.553-.174-.786.174-.233.348-.903 1.13-1.107 1.363-.204.232-.407.26-.754.087-.347-.174-1.465-.54-2.79-1.72-1.03-.918-1.726-2.052-1.93-2.4-.203-.347-.022-.534.153-.707.157-.155.347-.405.52-.607.175-.203.233-.348.349-.58.116-.233.058-.437-.03-.61-.087-.174-.786-1.893-1.077-2.594-.284-.681-.572-.588-.786-.599l-.668-.012c-.233 0-.61.087-.93.435-.32.347-1.223 1.194-1.223 2.913s1.252 3.38 1.427 3.613c.174.232 2.464 3.763 5.97 5.277.834.36 1.485.575 1.993.736.837.267 1.6.23 2.202.14.672-.101 2.057-.842 2.348-1.655.29-.813.29-1.51.203-1.656-.086-.145-.32-.232-.668-.406z"/>
-  </svg>
-);
-
-// ── Social Buttons Component ───────────────────────────────────────────────
-const SocialButtons = ({ size = "md" }) => {
-  const s = size === "lg" ? 52 : 42;
+// ── Social Links Component ─────────────────────────────────────────────────
+const SocialLinks = ({ size = "normal" }) => {
+  const s = size === "large" ? 22 : 18;
+  const w = size === "large" ? 48 : 40;
   return (
-    <div className="flex gap-3 flex-wrap">
-      <a href={data.contact.instagram} target="_blank" rel="noopener noreferrer"
-        className="social-btn" style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", color: "#fff", width: s, height: s }}>
-        <InstagramIcon />
+    <div className="flex gap-3">
+      <a href={data.social.instagram} target="_blank" rel="noopener noreferrer"
+        className="social-icon" style={{ width: w, height: w, background: "var(--navy-600)" }}
+        title="Follow on Instagram">
+        <InstagramIcon size={s} color="#E1306C" />
       </a>
-      <a href={data.contact.facebook} target="_blank" rel="noopener noreferrer"
-        className="social-btn" style={{ background: "#1877F2", color: "#fff", width: s, height: s }}>
-        <FacebookIcon />
+      <a href={data.social.facebook} target="_blank" rel="noopener noreferrer"
+        className="social-icon" style={{ width: w, height: w, background: "var(--navy-600)" }}
+        title="Follow on Facebook">
+        <FacebookIcon size={s} color="#1877F2" />
       </a>
-      <a href={data.contact.linkedin} target="_blank" rel="noopener noreferrer"
-        className="social-btn" style={{ background: "#0A66C2", color: "#fff", width: s, height: s }}>
-        <LinkedInIcon />
+      <a href={data.social.linkedin} target="_blank" rel="noopener noreferrer"
+        className="social-icon" style={{ width: w, height: w, background: "var(--navy-600)" }}
+        title="Connect on LinkedIn">
+        <LinkedInIcon size={s} color="#0A66C2" />
       </a>
-      <a href={data.contact.youtube} target="_blank" rel="noopener noreferrer"
-        className="social-btn" style={{ background: "#FF0000", color: "#fff", width: s, height: s }}>
-        <YouTubeIcon />
+      <a href={data.social.youtube} target="_blank" rel="noopener noreferrer"
+        className="social-icon" style={{ width: w, height: w, background: "var(--navy-600)" }}
+        title="Watch on YouTube">
+        <YouTubeIcon size={s} color="#FF0000" />
       </a>
     </div>
   );
@@ -354,7 +493,7 @@ const WhatsAppFloat = () => (
     target="_blank" rel="noopener noreferrer" className="whatsapp-float" aria-label="Chat on WhatsApp">
     <div className="whatsapp-tooltip">Chat with us!</div>
     <svg width="28" height="28" viewBox="0 0 32 32" fill="white">
-      <path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.648 4.83 1.783 6.863L2 30l7.343-1.76A13.94 13.94 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.6a11.57 11.57 0 01-5.9-1.615l-.42-.25-4.358 1.045 1.07-4.245-.275-.437A11.573 11.573 0 014.4 16C4.4 9.593 9.593 4.4 16 4.4S27.6 9.593 27.6 16 22.407 27.6 16 27.6zm6.35-8.688c-.347-.174-2.057-1.015-2.376-1.13-.32-.117-.553-.174-.786.174-.233.348-.903 1.13-1.107 1.363-.204.232-.407.26-.754.087-.347-.174-1.465-.54-2.79-1.72-1.03-.918-1.726-2.052-1.93-2.4-.203-.347-.022-.534.153-.707.157-.155.347-.405.52-.607.175-.203.233-.348.349-.58.116-.233.058-.437-.03-.61-.087-.174-.786-1.893-1.077-2.594-.284-.681-.572-.588-.786-.599l-.668-.012c-.233 0-.61.087-.93.435-.32.347-1.223 1.194-1.223 2.913s1.252 3.38 1.427 3.613c.174.232 2.464 3.763 5.97 5.277.834.36 1.485.575 1.993.736.837.267 1.6.23 2.202.14.672-.101 2.057-.842 2.348-1.655.29-.813.29-1.51.203-1.656-.086-.145-.32-.232-.668-.406z"/>
+      <path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.648 4.83 1.783 6.863L2 30l7.343-1.76A13.94 13.94 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm6.35 18.912c-.347-.174-2.057-1.015-2.376-1.13-.32-.117-.553-.174-.786.174-.233.348-.903 1.13-1.107 1.363-.204.232-.407.26-.754.087-.347-.174-1.465-.54-2.79-1.72-1.03-.918-1.726-2.052-1.93-2.4-.203-.347-.022-.534.153-.707.157-.155.347-.405.52-.607.175-.203.233-.348.349-.58.116-.233.058-.437-.03-.61-.087-.174-.786-1.893-1.077-2.594-.284-.681-.572-.588-.786-.599l-.668-.012c-.233 0-.61.087-.93.435-.32.347-1.223 1.194-1.223 2.913s1.252 3.38 1.427 3.613c.174.232 2.464 3.763 5.97 5.277.834.36 1.485.575 1.993.736.837.267 1.6.23 2.202.14.672-.101 2.057-.842 2.348-1.655.29-.813.29-1.51.203-1.656-.086-.145-.32-.232-.668-.406z"/>
     </svg>
   </a>
 );
@@ -362,15 +501,13 @@ const WhatsAppFloat = () => (
 // ── Navbar ─────────────────────────────────────────────────────────────────
 const Navbar = ({ page, setPage, scrolled }) => {
   const [open, setOpen] = useState(false);
-  const mainLinks = ["Home","About","Services","Pricing","Projects","Blog","FAQ","Contact"];
-  const extraLinks = ["Why Us","Testimonials","Team"];
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "rgba(20,20,20,0.98)" : "rgba(0,0,0,0.3)",
+        background: scrolled ? "rgba(2,8,16,0.98)" : "rgba(2,8,16,0.2)",
         backdropFilter: "blur(14px)",
         borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
-        boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,0.4)" : "none",
+        boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,0.5)" : "none",
       }}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
         <button onClick={() => setPage("Home")} style={{ background: "none", border: "none", cursor: "pointer" }}>
@@ -378,39 +515,17 @@ const Navbar = ({ page, setPage, scrolled }) => {
             BUILD<span style={{ color: "var(--cream)" }}>CORE</span>
           </span>
         </button>
-        <div className="hidden lg:flex items-center gap-5">
-          {mainLinks.map(l => (
+        <div className="hidden lg:flex items-center gap-6">
+          {data.navbar.links.map(l => (
             <button key={l} onClick={() => setPage(l)} className={`nav-link ${page === l ? "active" : ""}`}>{l}</button>
           ))}
-          {/* Dropdown for extra pages */}
-          <div style={{ position: "relative" }} className="group">
-            <button className={`nav-link ${extraLinks.includes(page) ? "active" : ""}`}
-              style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              More ▾
-            </button>
-            <div style={{ position: "absolute", top: "calc(100% + 12px)", right: 0, background: "#1a1a1a", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 0", minWidth: 150, boxShadow: "0 12px 40px rgba(0,0,0,0.5)", opacity: 0, pointerEvents: "none", transition: "opacity 0.2s", zIndex: 200 }}
-              onMouseOver={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.pointerEvents = "all"; }}
-              onMouseOut={e => { e.currentTarget.style.opacity = 0; e.currentTarget.style.pointerEvents = "none"; }}
-              className="dropdown-menu">
-              {extraLinks.map(l => (
-                <button key={l} onClick={() => setPage(l)}
-                  className="w-full text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: page === l ? "var(--gold)" : "var(--text-muted)", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
-                  onMouseOver={e => e.currentTarget.style.color = "var(--gold)"}
-                  onMouseOut={e => e.currentTarget.style.color = page === l ? "var(--gold)" : "var(--text-muted)"}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
           <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I'd%20like%20a%20free%20quote.`}
             target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 rounded text-xs font-bold tracking-wider uppercase"
             style={{ background: "#25D366", color: "#fff", textDecoration: "none", transition: "all 0.2s" }}
             onMouseOver={e => e.currentTarget.style.opacity = "0.88"}
             onMouseOut={e => e.currentTarget.style.opacity = "1"}>
-            <WhatsAppIcon size={14} />
-            WhatsApp
+            <WhatsAppSVG size={14} /> WhatsApp
           </a>
           <button onClick={() => setPage("Contact")} className="gold-btn px-5 py-2 text-xs rounded font-bold tracking-wider uppercase">
             Get Quote
@@ -422,7 +537,7 @@ const Navbar = ({ page, setPage, scrolled }) => {
       </div>
       {open && (
         <div className="lg:hidden border-t px-6 py-5 flex flex-col gap-4"
-          style={{ background: "var(--charcoal)", borderColor: "var(--border)" }}>
+          style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
           {data.navbar.links.map(l => (
             <button key={l} onClick={() => { setPage(l); setOpen(false); }}
               className={`nav-link text-left ${page === l ? "active" : ""}`}>{l}</button>
@@ -431,10 +546,6 @@ const Navbar = ({ page, setPage, scrolled }) => {
             className="text-left text-sm font-bold" style={{ color: "#25D366", textDecoration: "none" }}>
             💬 WhatsApp Us
           </a>
-          <div className="pt-2">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>Follow Us</p>
-            <SocialButtons />
-          </div>
         </div>
       )}
     </nav>
@@ -443,34 +554,27 @@ const Navbar = ({ page, setPage, scrolled }) => {
 
 // ── Footer ─────────────────────────────────────────────────────────────────
 const Footer = ({ setPage }) => (
-  <footer className="border-t" style={{ background: "#0D0D0D", borderColor: "var(--border)" }}>
+  <footer className="border-t" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
     <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
       <div className="md:col-span-2">
         <p className="text-3xl font-bold mb-2" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.1em" }}>
           BUILD<span style={{ color: "var(--cream)" }}>CORE</span>
         </p>
-        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>{data.footer.tagline}</p>
+        <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>{data.footer.tagline}</p>
         <div className="space-y-2 mb-6">
-          <a href={`https://maps.google.com/?q=${encodeURIComponent(data.contact.mapAddress)}`} target="_blank" rel="noopener noreferrer"
-            className="flex items-start gap-2 text-sm" style={{ color: "var(--text-muted)", textDecoration: "none", transition: "color 0.2s" }}
-            onMouseOver={e => e.currentTarget.style.color = "var(--gold)"}
-            onMouseOut={e => e.currentTarget.style.color = "var(--text-muted)"}>
-            📍 {data.contact.address}
-          </a>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>📍 {data.contact.address}</p>
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>📞 {data.contact.phone}</p>
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>✉ {data.contact.email}</p>
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>🕐 {data.contact.hours}</p>
+        </div>
+        <div className="mb-6">
+          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--cream)" }}>Follow Us</p>
+          <SocialLinks />
         </div>
         <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-6"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold"
           style={{ background: "#25D36622", color: "#25D366", border: "1px solid #25D36644", textDecoration: "none" }}>
-          <WhatsAppIcon size={14} />
-          Chat on WhatsApp
+          <WhatsAppSVG size={14} /> Chat on WhatsApp
         </a>
-        <div>
-          <p className="font-bold text-xs mb-3 uppercase tracking-widest" style={{ color: "var(--cream)" }}>Follow Us</p>
-          <SocialButtons />
-        </div>
       </div>
       <div>
         <p className="font-bold text-xs mb-5 uppercase tracking-widest" style={{ color: "var(--cream)" }}>Pages</p>
@@ -491,25 +595,117 @@ const Footer = ({ setPage }) => (
               onMouseOut={e => e.currentTarget.style.color = "var(--text-muted)"}>{l}</span>
           ))}
         </div>
-        <div className="p-4 rounded-xl border text-center" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--gold)" }}>Our Location</p>
-          <a href={`https://maps.google.com/?q=${encodeURIComponent(data.contact.mapAddress)}`} target="_blank" rel="noopener noreferrer"
-            className="text-xs block mb-3" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
-            Brigade Road, Bangalore 560001
-          </a>
-          <a href={`https://maps.google.com/?q=${encodeURIComponent(data.contact.mapAddress)}`} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded text-xs font-bold"
-            style={{ background: "var(--gold)", color: "#1A1A1A", textDecoration: "none" }}>
-            📍 Open in Maps
+        <div className="p-4 rounded-lg border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--gold)" }}>📍 Find Us</p>
+          <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Brigade Road, Bangalore</p>
+          <a href="https://maps.google.com/?q=Brigade+Road+Bangalore" target="_blank" rel="noopener noreferrer"
+            className="text-xs font-bold" style={{ color: "var(--gold)", textDecoration: "none" }}>
+            Open in Google Maps →
           </a>
         </div>
       </div>
     </div>
-    <div className="border-t py-4 text-center text-xs" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+    <div className="border-t py-4 text-center text-xs" style={{ borderColor: "var(--border-light)", color: "var(--text-muted)" }}>
       {data.footer.text}
     </div>
   </footer>
 );
+
+// ── Project Detail Modal ───────────────────────────────────────────────────
+const ProjectModal = ({ project, index, onClose }) => {
+  const [imgIdx, setImgIdx] = useState(0);
+  if (!project) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div style={{ position: "relative", height: 320, overflow: "hidden", borderRadius: "16px 16px 0 0" }}>
+          <img src={IMGS.projectDetails[imgIdx]} alt={project.title}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)" }} />
+          <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(0,0,0,0.6)", border: "1px solid var(--border-light)", color: "var(--cream)", width: 36, height: 36, borderRadius: "50%", cursor: "pointer", fontSize: 16 }}>✕</button>
+          <div className="flex gap-2" style={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)" }}>
+            {[0,1,2,3].map(i => (
+              <button key={i} onClick={() => setImgIdx(i)} style={{ width: i === imgIdx ? 24 : 8, height: 8, borderRadius: 4, background: i === imgIdx ? "var(--gold)" : "rgba(255,255,255,0.5)", border: "none", cursor: "pointer", transition: "all 0.3s" }} />
+            ))}
+          </div>
+          <span style={{ position: "absolute", top: 16, left: 16, background: "rgba(200,146,42,0.9)", color: "var(--navy-900)", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.08em" }}>{project.type}</span>
+        </div>
+        <div className="p-8">
+          <h2 className="font-bold text-3xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{project.title}</h2>
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-muted)" }}>{project.description}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: "Location", val: project.location },
+              { label: "Area", val: project.area },
+              { label: "Duration", val: project.duration },
+              { label: "Project Value", val: project.value },
+            ].map((s, i) => (
+              <div key={i} className="p-4 rounded-lg text-center" style={{ background: "var(--navy-800)", border: "1px solid var(--border-light)" }}>
+                <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "var(--gold)" }}>{s.label}</p>
+                <p className="font-bold text-sm" style={{ color: "var(--cream)" }}>{s.val}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mb-6">
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--gold)" }}>Key Features</p>
+            <div className="flex flex-wrap gap-2">
+              {project.highlights.map((h, i) => (
+                <span key={i} className="text-xs px-3 py-1 rounded-full font-semibold"
+                  style={{ background: "rgba(200,146,42,0.15)", color: "var(--gold)", border: "1px solid rgba(200,146,42,0.3)" }}>✓ {h}</span>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi!%20I'm%20interested%20in%20a%20similar%20project%20to%20${encodeURIComponent(project.title)}.`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 rounded text-sm font-bold"
+              style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
+              <WhatsAppSVG size={14} /> Enquire on WhatsApp
+            </a>
+            <button onClick={onClose} className="outline-btn px-6 py-3 rounded text-sm font-semibold">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Team Member Modal ──────────────────────────────────────────────────────
+const TeamModal = ({ member, index, onClose }) => {
+  if (!member) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+        <div className="p-8">
+          <button onClick={onClose} style={{ float: "right", background: "var(--navy-600)", border: "1px solid var(--border-light)", color: "var(--cream)", width: 32, height: 32, borderRadius: "50%", cursor: "pointer", fontSize: 14 }}>✕</button>
+          <div className="flex items-center gap-5 mb-6">
+            <img src={IMGS.team[index]} alt={member.name} style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", objectPosition: "top", border: "3px solid var(--gold)" }} />
+            <div>
+              <h3 className="font-bold text-2xl" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{member.name}</h3>
+              <p className="text-sm" style={{ color: "var(--gold)" }}>{member.role}</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{member.exp} experience</p>
+            </div>
+          </div>
+          <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>{member.bio}</p>
+          <div className="mb-6">
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--gold)" }}>Expertise</p>
+            <div className="flex flex-wrap gap-2">
+              {member.skills.map((s, i) => (
+                <span key={i} className="text-xs px-3 py-1 rounded-full"
+                  style={{ background: "var(--navy-600)", color: "var(--cream)", border: "1px solid var(--border-light)" }}>{s}</span>
+              ))}
+            </div>
+          </div>
+          <a href={member.linkedin} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded text-sm font-bold"
+            style={{ background: "#0A66C2", color: "#fff", textDecoration: "none" }}>
+            <LinkedInIcon size={14} color="#fff" /> Connect on LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ── Home Page ──────────────────────────────────────────────────────────────
 const HomePage = ({ setPage }) => {
@@ -569,8 +765,7 @@ const HomePage = ({ setPage }) => {
                   style={{ background: "#25D36622", border: "1.5px solid #25D366", color: "#25D366", textDecoration: "none", transition: "all 0.2s" }}
                   onMouseOver={e => { e.currentTarget.style.background = "#25D366"; e.currentTarget.style.color = "#fff"; }}
                   onMouseOut={e => { e.currentTarget.style.background = "#25D36622"; e.currentTarget.style.color = "#25D366"; }}>
-                  <WhatsAppIcon size={16} />
-                  WhatsApp Us
+                  <WhatsAppSVG size={16} /> WhatsApp Us
                 </a>
                 <button onClick={() => setPage("Projects")} className="outline-btn px-8 py-4 rounded text-sm font-semibold tracking-wider uppercase">
                   View Projects
@@ -586,7 +781,7 @@ const HomePage = ({ setPage }) => {
         <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
           {data.home.stats.map((s, i) => (
             <div key={i} className="text-center">
-              <p className="font-bold text-3xl" style={{ color: "#1A1A1A", fontFamily: "'Barlow Condensed', sans-serif" }}>{s.value}</p>
+              <p className="font-bold text-3xl" style={{ color: "var(--navy-900)", fontFamily: "'Barlow Condensed', sans-serif" }}>{s.value}</p>
               <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: "rgba(26,26,26,0.7)" }}>{s.label}</p>
             </div>
           ))}
@@ -594,7 +789,7 @@ const HomePage = ({ setPage }) => {
       </div>
 
       {/* Features */}
-      <section className="py-24" style={{ background: "var(--charcoal)" }}>
+      <section className="py-24" style={{ background: "var(--navy-900)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <SectionLabel>Why BuildCore</SectionLabel>
@@ -605,7 +800,7 @@ const HomePage = ({ setPage }) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data.home.features.map((f, i) => (
-              <div key={i} className="card-hover p-8 rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+              <div key={i} className="card-hover p-8 rounded-xl border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
                 <div className="text-3xl mb-4">{f.icon}</div>
                 <h3 className="text-xl font-bold mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{f.description}</p>
@@ -613,15 +808,15 @@ const HomePage = ({ setPage }) => {
             ))}
           </div>
           <div className="text-center mt-10">
-            <button onClick={() => setPage("Why Us")} className="outline-btn px-8 py-3 rounded text-sm font-semibold tracking-wider uppercase">
-              Explore Why Choose Us →
+            <button onClick={() => setPage("Why Us")} className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">
+              See Why 500+ Chose Us →
             </button>
           </div>
         </div>
       </section>
 
       {/* How We Work */}
-      <section className="py-24" style={{ background: "#111" }}>
+      <section className="py-24" style={{ background: "var(--navy-800)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <SectionLabel>Our Process</SectionLabel>
@@ -629,7 +824,7 @@ const HomePage = ({ setPage }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.home.process.map((p, i) => (
-              <div key={i} className="card-hover text-center p-8 rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+              <div key={i} className="card-hover text-center p-8 rounded-xl border" style={{ background: "var(--navy-700)", borderColor: "var(--border-light)" }}>
                 <p className="text-5xl font-bold mb-4" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif", opacity: 0.3 }}>{p.step}</p>
                 <h3 className="text-xl font-bold mb-3" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{p.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{p.desc}</p>
@@ -639,8 +834,8 @@ const HomePage = ({ setPage }) => {
         </div>
       </section>
 
-      {/* Testimonials Preview */}
-      <section className="py-24" style={{ background: "var(--charcoal)" }}>
+      {/* Testimonials */}
+      <section className="py-24" style={{ background: "var(--navy-900)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <SectionLabel>Client Stories</SectionLabel>
@@ -648,7 +843,7 @@ const HomePage = ({ setPage }) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.home.testimonialsPreview.map((t, i) => (
-              <div key={i} className="card-hover p-8 rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+              <div key={i} className="card-hover p-8 rounded-xl border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
                 <Stars />
                 <p className="text-sm leading-relaxed my-4" style={{ color: "var(--text-muted)" }}>"{t.feedback}"</p>
                 <p className="font-semibold text-sm" style={{ color: "var(--cream)" }}>{t.name}</p>
@@ -657,10 +852,44 @@ const HomePage = ({ setPage }) => {
             ))}
           </div>
           <div className="text-center mt-10">
-            <button onClick={() => setPage("Testimonials")} className="outline-btn px-8 py-3 rounded text-sm font-semibold tracking-wider uppercase">
-              Read All Reviews →
+            <button onClick={() => setPage("Projects")} className="outline-btn px-8 py-3 rounded text-sm font-semibold tracking-wider uppercase">
+              View All Projects & Reviews
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Follow Us on Social */}
+      <section className="py-16" style={{ background: "var(--navy-800)" }}>
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <SectionLabel>Stay Connected</SectionLabel>
+          <SectionHeading center>Follow Our Journey</SectionHeading>
+          <p className="text-sm mb-8 max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
+            Behind-the-scenes construction updates, design inspiration, and project stories — follow us for daily content.
+          </p>
+          <div className="flex justify-center mb-6">
+            <SocialLinks size="large" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+            {[IMGS.projects[0], IMGS.projects[1], IMGS.projects[2], IMGS.projects[3]].map((img, i) => (
+              <a key={i} href={data.social.instagram} target="_blank" rel="noopener noreferrer"
+                className="block rounded-xl overflow-hidden relative" style={{ paddingBottom: "100%", cursor: "pointer" }}>
+                <img src={img} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s" }}
+                  onMouseOver={e => e.target.style.transform = "scale(1.06)"}
+                  onMouseOut={e => e.target.style.transform = "scale(1)"} />
+                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0)", transition: "background 0.2s", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  onMouseOver={e => { e.currentTarget.style.background = "rgba(200,146,42,0.4)"; }}
+                  onMouseOut={e => { e.currentTarget.style.background = "rgba(0,0,0,0)"; }}>
+                  <InstagramIcon size={28} color="white" />
+                </div>
+              </a>
+            ))}
+          </div>
+          <a href={data.social.instagram} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 mt-6 text-sm font-bold"
+            style={{ color: "#E1306C", textDecoration: "none" }}>
+            <InstagramIcon size={16} color="#E1306C" /> @buildcore.in — Follow on Instagram
+          </a>
         </div>
       </section>
 
@@ -669,7 +898,7 @@ const HomePage = ({ setPage }) => {
         <img src={IMGS.ctaBg} alt="cta" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(200,146,42,0.88)" }} />
         <div className="relative max-w-3xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-          <h2 className="font-bold mb-4" style={{ color: "#1A1A1A", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2rem,5vw,3.5rem)" }}>
+          <h2 className="font-bold mb-4" style={{ color: "var(--navy-900)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2rem,5vw,3.5rem)" }}>
             Ready to Build Your Dream?
           </h2>
           <p className="text-base mb-8" style={{ color: "rgba(26,26,26,0.8)" }}>
@@ -677,31 +906,16 @@ const HomePage = ({ setPage }) => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <button onClick={() => setPage("Contact")} className="px-10 py-4 rounded font-bold text-sm tracking-wider uppercase"
-              style={{ background: "#1A1A1A", color: "#C8922A" }}>
+              style={{ background: "var(--navy-900)", color: "#C8922A" }}>
               Get Free Quote
             </button>
             <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi!%20I'd%20like%20a%20free%20quote.`}
               target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 px-10 py-4 rounded font-bold text-sm tracking-wider uppercase"
               style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-              <WhatsAppIcon size={16} />
-              WhatsApp Now
+              <WhatsAppSVG size={16} /> WhatsApp Now
             </a>
           </div>
-        </div>
-      </section>
-
-      {/* Follow Us Section */}
-      <section className="py-16" style={{ background: "#111" }}>
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div>
-            <SectionLabel>Stay Connected</SectionLabel>
-            <h2 className="text-3xl font-bold" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>
-              Follow Our Journey
-            </h2>
-            <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>Get inspiration, project updates & behind-the-scenes content.</p>
-          </div>
-          <SocialButtons size="lg" />
         </div>
       </section>
     </div>
@@ -722,20 +936,21 @@ const AboutPage = ({ setPage }) => (
         <p className="text-lg" style={{ color: "rgba(245,240,232,0.75)", maxWidth: 560 }}>{data.about.intro}</p>
       </div>
     </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
+
+    <section className="py-24" style={{ background: "var(--navy-900)" }}>
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
           <div className="border-l-4 pl-6 mb-8" style={{ borderColor: "var(--gold)" }}>
             <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Our Mission</p>
             <p className="text-xl" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{data.about.mission}</p>
           </div>
-          <div className="border-l-4 pl-6 mb-8" style={{ borderColor: "var(--border)" }}>
+          <div className="border-l-4 pl-6 mb-8" style={{ borderColor: "var(--border-light)" }}>
             <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--gold)" }}>Our Vision</p>
             <p className="text-xl" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{data.about.vision}</p>
           </div>
           <div className="space-y-3">
             {data.about.values.map((v, i) => (
-              <div key={i} className="flex items-center gap-4 p-4 rounded-lg border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+              <div key={i} className="flex items-center gap-4 p-4 rounded-lg border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
                 <span style={{ color: "var(--gold)", fontSize: 18 }}>▸</span>
                 <span className="text-sm" style={{ color: "var(--cream)" }}>{v}</span>
               </div>
@@ -744,41 +959,381 @@ const AboutPage = ({ setPage }) => (
         </div>
         <div className="relative">
           <img src={IMGS.aboutOffice} alt="office" className="rounded-xl w-full" style={{ objectFit: "cover", height: 420 }} />
-          <div className="absolute bottom-6 left-6 p-5 rounded-lg" style={{ background: "rgba(26,26,26,0.92)", backdropFilter: "blur(12px)", border: "1px solid var(--border)" }}>
+          <div className="absolute bottom-6 left-6 p-5 rounded-lg" style={{ background: "rgba(2,8,16,0.95)", backdropFilter: "blur(12px)", border: "1px solid var(--border-light)" }}>
             <div className="flex gap-6">
-              <div className="text-center"><p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>500+</p><p className="text-xs" style={{ color: "var(--text-muted)" }}>Projects</p></div>
-              <div className="text-center"><p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>15+</p><p className="text-xs" style={{ color: "var(--text-muted)" }}>Years</p></div>
-              <div className="text-center"><p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>98%</p><p className="text-xs" style={{ color: "var(--text-muted)" }}>Satisfaction</p></div>
+              {[["500+","Projects"],["15+","Years"],["98%","Satisfaction"]].map(([v,l],i)=>(
+                <div key={i} className="text-center">
+                  <p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>{v}</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{l}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
     </section>
-    <section className="py-16" style={{ background: "#111" }}>
+
+    <section className="py-16" style={{ background: "var(--navy-800)" }}>
       <div className="max-w-7xl mx-auto px-6">
         <p className="text-xs font-bold uppercase tracking-widest mb-6 text-center" style={{ color: "var(--gold)" }}>Recognition & Certifications</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {data.about.awards.map((a, i) => (
-            <div key={i} className="p-4 rounded-lg border text-center text-sm" style={{ background: "var(--slate)", borderColor: "var(--border)", color: "var(--cream)" }}>
+            <div key={i} className="p-4 rounded-lg border text-center text-sm" style={{ background: "var(--navy-700)", borderColor: "var(--border-light)", color: "var(--cream)" }}>
               🏆 {a}
             </div>
           ))}
         </div>
       </div>
     </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
-      <div className="max-w-7xl mx-auto px-6 text-center">
-        <SectionLabel>Meet the Team</SectionLabel>
-        <SectionHeading center>The People Behind BuildCore</SectionHeading>
-        <div className="flex flex-wrap justify-center gap-4 mt-8">
-          <button onClick={() => setPage("Team")} className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">
-            View Full Team →
-          </button>
+
+    <section className="py-16" style={{ background: "var(--navy-900)" }}>
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        <SectionLabel>Our People</SectionLabel>
+        <SectionHeading center>200+ Experts Behind Every Project</SectionHeading>
+        <p className="text-sm mb-8 max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
+          From architects and engineers to project managers and client relations — meet the team that makes it all happen.
+        </p>
+        <div className="flex justify-center -space-x-3 mb-8">
+          {IMGS.team.slice(0,5).map((img, i) => (
+            <img key={i} src={img} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", objectPosition: "top", border: "3px solid var(--navy-900)" }} />
+          ))}
+          <div style={{ width: 52, height: 52, borderRadius: "50%", background: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", border: "3px solid var(--navy-900)", fontSize: 11, fontWeight: 700, color: "var(--navy-900)" }}>195+</div>
+        </div>
+        <button onClick={() => setPage("Team")} className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">
+          Meet the Leadership Team →
+        </button>
+      </div>
+    </section>
+  </div>
+);
+
+// ── Why Us Page ────────────────────────────────────────────────────────────
+const WhyUsPage = ({ setPage }) => (
+  <div className="pt-16">
+    <section className="relative py-32 overflow-hidden">
+      <img src={IMGS.whyUsBg} alt="why us" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.76)" }} />
+      <div className="relative max-w-7xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
+        <SectionLabel>Why BuildCore</SectionLabel>
+        <h1 className="font-bold mb-4" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2.5rem,6vw,5rem)" }}>
+          {data.whyUs.headline}
+        </h1>
+        <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.75)" }}>{data.whyUs.subtitle}</p>
+      </div>
+    </section>
+
+    <div style={{ background: "linear-gradient(90deg, #C8922A, #A0701C)" }}>
+      <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+        {data.whyUs.stats.map((s, i) => (
+          <div key={i} className="text-center">
+            <p className="text-3xl mb-1">{s.icon}</p>
+            <p className="font-bold text-3xl" style={{ color: "var(--navy-900)", fontFamily: "'Barlow Condensed', sans-serif" }}>{s.value}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(26,26,26,0.75)" }}>{s.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <section className="py-24" style={{ background: "var(--navy-900)" }}>
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <SectionLabel>Our Differentiators</SectionLabel>
+          <SectionHeading center>What Sets Us Apart</SectionHeading>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {data.whyUs.pillars.map((p, i) => (
+            <div key={i} className="card-hover p-8 rounded-xl border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
+              <div className="text-4xl mb-4">{p.icon}</div>
+              <div className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-4" style={{ background: "rgba(200,146,42,0.15)", color: "var(--gold)", border: "1px solid rgba(200,146,42,0.3)" }}>
+                {p.highlight}
+              </div>
+              <h3 className="font-bold text-xl mb-3" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{p.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{p.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section className="py-24" style={{ background: "var(--navy-800)" }}>
+      <div className="max-w-3xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <SectionLabel>Comparison</SectionLabel>
+          <SectionHeading center>BuildCore vs Others</SectionHeading>
+        </div>
+        <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border-light)" }}>
+          <div className="grid grid-cols-3 py-4 px-6" style={{ background: "var(--gold)" }}>
+            <p className="text-sm font-bold" style={{ color: "var(--navy-900)" }}>Feature</p>
+            <p className="text-sm font-bold text-center" style={{ color: "var(--navy-900)" }}>BuildCore</p>
+            <p className="text-sm font-bold text-center" style={{ color: "var(--navy-900)" }}>Others</p>
+          </div>
+          {data.whyUs.comparison.map((c, i) => (
+            <div key={i} className="grid grid-cols-3 py-4 px-6 border-t items-center" style={{ background: i % 2 === 0 ? "var(--navy-700)" : "var(--navy-900)", borderColor: "var(--border-light)" }}>
+              <p className="text-sm" style={{ color: "var(--cream)" }}>{c.feature}</p>
+              <div className="text-center text-lg">{c.us ? "✅" : "❌"}</div>
+              <div className="text-center text-lg">{c.others ? "✅" : "❌"}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section className="py-20" style={{ background: "var(--navy-900)" }}>
+      <div className="max-w-3xl mx-auto px-6">
+        <div className="p-10 rounded-2xl border text-center" style={{ background: "var(--navy-800)", borderColor: "var(--gold)", borderWidth: 2 }}>
+          <div className="text-4xl mb-6" style={{ color: "var(--gold)" }}>"</div>
+          <p className="text-xl leading-relaxed mb-8 italic" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>
+            {data.whyUs.testimonialHighlight.quote}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg"
+              style={{ background: "var(--gold)", color: "var(--navy-900)" }}>
+              {data.whyUs.testimonialHighlight.avatar}
+            </div>
+            <div className="text-left">
+              <p className="font-bold text-sm" style={{ color: "var(--cream)" }}>{data.whyUs.testimonialHighlight.name}</p>
+              <p className="text-xs" style={{ color: "var(--gold)" }}>{data.whyUs.testimonialHighlight.role}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="relative py-20 overflow-hidden">
+      <img src={IMGS.ctaBg} alt="cta" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(200,146,42,0.9)" }} />
+      <div className="relative max-w-3xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
+        <h2 className="font-bold text-3xl mb-4" style={{ color: "var(--navy-900)", fontFamily: "'Barlow Condensed', sans-serif" }}>Ready to Experience the BuildCore Difference?</h2>
+        <p className="text-sm mb-6" style={{ color: "rgba(26,26,26,0.8)" }}>Get a free 30-min consultation. No commitment, just clarity.</p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <button onClick={() => setPage("Contact")} className="px-8 py-3 rounded font-bold text-sm tracking-wider uppercase"
+            style={{ background: "var(--navy-900)", color: "#C8922A" }}>Book Consultation</button>
+          <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-8 py-3 rounded font-bold text-sm tracking-wider uppercase"
+            style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
+            <WhatsAppSVG size={14} /> WhatsApp Us
+          </a>
         </div>
       </div>
     </section>
   </div>
 );
+
+// ── Team Page ──────────────────────────────────────────────────────────────
+const deptColors = {
+  "Leadership":      { bg: "rgba(200,146,42,0.12)", color: "#E5B04A",  border: "rgba(200,146,42,0.3)" },
+  "Operations":      { bg: "rgba(99,179,237,0.10)", color: "#63B3ED",  border: "rgba(99,179,237,0.3)" },
+  "Design":          { bg: "rgba(154,117,235,0.12)", color: "#B794F4", border: "rgba(154,117,235,0.3)" },
+  "Engineering":     { bg: "rgba(72,199,142,0.10)", color: "#48C78E",  border: "rgba(72,199,142,0.3)" },
+  "Client Success":  { bg: "rgba(252,129,74,0.10)", color: "#FC814A",  border: "rgba(252,129,74,0.3)" },
+  "Green Initiatives":{ bg: "rgba(72,199,142,0.10)", color: "#48C78E", border: "rgba(72,199,142,0.3)" },
+};
+
+const TeamPage = () => {
+  const [selected, setSelected] = useState(null);
+  const [selectedIdx, setSelectedIdx] = useState(null);
+  const [filter, setFilter] = useState("All");
+  const depts = ["All", ...Array.from(new Set(data.team.map(m => m.dept)))];
+  const filtered = filter === "All" ? data.team : data.team.filter(m => m.dept === filter);
+
+  return (
+    <div className="pt-16">
+      {selected && <TeamModal member={selected} index={selectedIdx} onClose={() => setSelected(null)} />}
+
+      {/* Hero */}
+      <section className="relative py-32 overflow-hidden">
+        <img src={IMGS.teamHero} alt="team" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(2,8,16,0.92) 0%, rgba(7,17,32,0.75) 100%)" }} />
+        <div style={{ position: "absolute", top: "20%", right: "10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(200,146,42,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div className="relative max-w-7xl mx-auto px-6" style={{ zIndex: 2 }}>
+          <SectionLabel>Our People</SectionLabel>
+          <h1 className="font-bold mb-5" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2.8rem,6vw,5rem)", maxWidth: 680, lineHeight: 1.0 }}>
+            The Minds Behind BuildCore
+          </h1>
+          <p className="text-lg mb-10" style={{ color: "var(--text-soft)", maxWidth: 520 }}>
+            200+ architects, engineers, designers, and specialists — united by one purpose: to deliver extraordinary.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
+            {[
+              { val: "200+", lbl: "Team Members" },
+              { val: "8", lbl: "Departments" },
+              { val: "15+", lbl: "Avg. Years Exp." },
+              { val: "500+", lbl: "Projects Together" },
+            ].map((s, i) => (
+              <div key={i} style={{ borderLeft: "2px solid var(--gold)", paddingLeft: 14 }}>
+                <p style={{ fontSize: 26, fontWeight: 800, color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif", lineHeight: 1 }}>{s.val}</p>
+                <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 2 }}>{s.lbl}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Department Filter */}
+      <div style={{ background: "var(--navy-800)", borderBottom: "1px solid var(--border)", position: "sticky", top: 64, zIndex: 30 }}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap gap-2 items-center">
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", marginRight: 8 }}>Filter:</span>
+          {depts.map(d => (
+            <button key={d} className={`tab-btn ${filter === d ? "active" : ""}`} onClick={() => setFilter(d)}>{d}</button>
+          ))}
+          <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)" }}>{filtered.length} member{filtered.length !== 1 ? "s" : ""}</span>
+        </div>
+      </div>
+
+      {/* Horizontal Card Grid */}
+      <section style={{ background: "var(--navy-900)", padding: "64px 24px 96px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+          {filtered.map((m, idx) => {
+            const origIdx = data.team.indexOf(m);
+            const dc = deptColors[m.dept] || { bg: "rgba(200,146,42,0.1)", color: "var(--gold)", border: "rgba(200,146,42,0.25)" };
+            return (
+              <div key={idx} className="team-hcard"
+                onClick={() => { setSelected(m); setSelectedIdx(origIdx); }}
+                style={{ cursor: "pointer" }}>
+                <div className="team-hcard-photo" style={{ width: 180, flexShrink: 0, overflow: "hidden", position: "relative" }}>
+                  <img
+                    src={IMGS.team[origIdx]}
+                    alt={m.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", transition: "transform 0.4s", display: "block", minHeight: 200 }}
+                  />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgba(7,17,32,0.5) 100%)" }} />
+                </div>
+                <div style={{ flex: 1, padding: "24px 28px 24px 24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 4 }}>
+                      <div>
+                        <h3 style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, lineHeight: 1.1, marginBottom: 2 }}>{m.name}</h3>
+                        <p style={{ fontSize: 11, color: "var(--gold)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>{m.role}</p>
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "4px 12px", borderRadius: 20, background: dc.bg, color: dc.color, border: `1px solid ${dc.border}`, whiteSpace: "nowrap" }}>
+                        {m.dept}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: 20, marginBottom: 12, marginTop: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 13 }}>⏱</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{m.exp} experience</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 13 }}>🏗</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{m.projects}+ projects</span>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 13, color: "var(--text-soft)", lineHeight: 1.65, marginBottom: 14, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {m.bio}
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {m.skills.map((sk, j) => (
+                        <span key={j} style={{ fontSize: 10, padding: "3px 10px", borderRadius: 4, background: "var(--navy-700)", color: "var(--text-soft)", border: "1px solid var(--border-light)", fontWeight: 600 }}>{sk}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <a href={m.linkedin} onClick={e => e.stopPropagation()} target="_blank" rel="noopener noreferrer"
+                        className="social-icon" style={{ width: 32, height: 32, borderRadius: 6 }}
+                        title="LinkedIn">
+                        <LinkedInIcon size={15} color="#0A66C2" />
+                      </a>
+                      <a href={m.instagram || data.social.instagram} onClick={e => e.stopPropagation()} target="_blank" rel="noopener noreferrer"
+                        className="social-icon" style={{ width: 32, height: 32, borderRadius: 6 }}
+                        title="Instagram">
+                        <InstagramIcon size={15} color="#E1306C" />
+                      </a>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--gold)", display: "flex", alignItems: "center", gap: 4 }}>
+                      View Full Profile
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── UPDATED: Our Culture Section — all 4 images now filled ── */}
+      <section className="py-20" style={{ background: "var(--navy-800)" }}>
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <SectionLabel>Our Culture</SectionLabel>
+            <SectionHeading>A Culture of Excellence & Care</SectionHeading>
+            <p className="text-base leading-relaxed mb-6" style={{ color: "var(--text-muted)" }}>
+              Exceptional buildings are built by exceptional people. We invest in our team's growth, wellbeing, and professional development at every level.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                { icon: "📚", title: "Continuous Learning", desc: "Monthly training programs and site visits to global construction projects." },
+                { icon: "🤝", title: "Collaborative Environment", desc: "Cross-functional teams that work together, never in silos." },
+                { icon: "📈", title: "Merit-Based Growth", desc: "Promotions based purely on performance, initiative, and measurable impact." },
+                { icon: "❤️", title: "Employee Wellbeing", desc: "Health insurance, flexible leaves, and milestone celebrations across the team." },
+              ].map((c, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 16px", borderRadius: 10, background: "var(--navy-700)", border: "1px solid var(--border-light)" }}>
+                  <span style={{ fontSize: 20, lineHeight: 1 }}>{c.icon}</span>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: "var(--cream)", marginBottom: 3 }}>{c.title}</p>
+                    <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55 }}>{c.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── FIXED: 4 distinct culture images, all valid Unsplash URLs ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {[
+              { src: IMGS.cultureOffice,       alt: "Modern office interior",     offset: false },
+              { src: IMGS.cultureConstruction,  alt: "Construction site teamwork", offset: true  },
+              { src: IMGS.cultureTeam,          alt: "Team collaboration",         offset: false },
+              { src: IMGS.cultureAwards,        alt: "Awards and recognition",     offset: true  },
+            ].map((img, i) => (
+              <div key={i} style={{ marginTop: img.offset ? 24 : 0, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border-light)" }}>
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }}
+                  onError={e => {
+                    // graceful fallback: show a dark placeholder on load failure
+                    e.target.style.background = "var(--navy-700)";
+                    e.target.style.display = "none";
+                    e.target.parentNode.style.background = "var(--navy-700)";
+                    e.target.parentNode.style.display = "flex";
+                    e.target.parentNode.style.alignItems = "center";
+                    e.target.parentNode.style.justifyContent = "center";
+                    e.target.parentNode.innerHTML = `<span style="color:var(--text-muted);font-size:11px;">${img.alt}</span>`;
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Join Us */}
+      <section className="py-20" style={{ background: "var(--navy-900)" }}>
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <SectionLabel>Careers</SectionLabel>
+          <SectionHeading center>Join the BuildCore Family</SectionHeading>
+          <p className="text-sm mb-8 max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
+            We're always looking for talented architects, engineers, project managers, and creative minds.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a href="mailto:careers@buildcore.in"
+              className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase" style={{ display: "inline-block", textDecoration: "none" }}>
+              Send Your Resume →
+            </a>
+            <a href={data.social.linkedin} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-8 py-3 rounded text-sm font-bold tracking-wider uppercase"
+              style={{ background: "#0A66C2", color: "#fff", textDecoration: "none" }}>
+              <LinkedInIcon size={14} color="#fff" /> LinkedIn Careers
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
 
 // ── Services Page ──────────────────────────────────────────────────────────
 const ServicesPage = ({ setPage }) => (
@@ -794,10 +1349,10 @@ const ServicesPage = ({ setPage }) => (
         </p>
       </div>
     </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
+    <section className="py-24" style={{ background: "var(--navy-900)" }}>
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.services.map((s, i) => (
-          <div key={i} className="card-hover rounded-xl border overflow-hidden" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+          <div key={i} className="card-hover rounded-xl border overflow-hidden" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
             <div style={{ position: "relative", height: 180 }}>
               <img src={IMGS.services[i]} alt={s.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }} />
@@ -822,15 +1377,15 @@ const ServicesPage = ({ setPage }) => (
       <img src={IMGS.ctaBg} alt="cta" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       <div style={{ position: "absolute", inset: 0, background: "rgba(200,146,42,0.9)" }} />
       <div className="relative max-w-3xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-        <h2 className="font-bold text-3xl mb-4" style={{ color: "#1A1A1A", fontFamily: "'Barlow Condensed', sans-serif" }}>Not Sure Which Service You Need?</h2>
+        <h2 className="font-bold text-3xl mb-4" style={{ color: "var(--navy-900)", fontFamily: "'Barlow Condensed', sans-serif" }}>Not Sure Which Service You Need?</h2>
         <p className="text-sm mb-6" style={{ color: "rgba(26,26,26,0.8)" }}>Book a free 30-minute consultation. Our experts guide you.</p>
         <div className="flex flex-wrap justify-center gap-4">
           <button onClick={() => setPage("Contact")} className="px-8 py-3 rounded font-bold text-sm tracking-wider uppercase"
-            style={{ background: "#1A1A1A", color: "#C8922A" }}>Book Consultation</button>
+            style={{ background: "var(--navy-900)", color: "#C8922A" }}>Book Consultation</button>
           <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-8 py-3 rounded font-bold text-sm tracking-wider uppercase"
             style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-            <WhatsAppIcon size={14} /> WhatsApp Us
+            <WhatsAppSVG size={14} /> WhatsApp Us
           </a>
         </div>
       </div>
@@ -843,434 +1398,174 @@ const PricingPage = ({ setPage }) => (
   <div className="pt-16">
     <section className="relative py-28 overflow-hidden">
       <img src={IMGS.pricingBg} alt="pricing" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.8)" }} />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.78)" }} />
       <div className="relative max-w-7xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-        <SectionLabel>Pricing Plans</SectionLabel>
-        <SectionHeading center>Transparent. Flexible. Fair.</SectionHeading>
+        <SectionLabel>Transparent Pricing</SectionLabel>
+        <SectionHeading center>Clear Plans. No Hidden Costs.</SectionHeading>
         <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.75)" }}>
-          All plans include a dedicated project manager, structural engineering, and milestone-based payment structure.
+          Per square foot pricing with full engineering, procurement, and PM included.
         </p>
       </div>
     </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+    <section className="py-24" style={{ background: "var(--navy-900)" }}>
+      <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         {data.pricing.map((p, i) => (
-          <div key={i} className={`card-hover rounded-xl border relative ${p.badge ? "" : ""}`}
-            style={{ background: p.badge ? "var(--mid)" : "var(--slate)", borderColor: p.badge ? "var(--gold)" : "var(--border)", padding: "2rem" }}>
+          <div key={i} className="card-hover rounded-xl border flex flex-col overflow-hidden"
+            style={{ background: "var(--navy-800)", borderColor: p.badge ? "var(--gold)" : "var(--border)", borderWidth: p.badge ? 2 : 1 }}>
             {p.badge && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-                style={{ background: "var(--gold)", color: "#1A1A1A" }}>{p.badge}</span>
+              <div className="text-center py-2 text-xs font-bold tracking-widest uppercase"
+                style={{ background: "var(--gold)", color: "var(--navy-900)" }}>{p.badge}</div>
             )}
-            <p className="font-bold text-xs uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>{p.plan}</p>
-            <p className="font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "3rem", lineHeight: 1 }}>{p.price}</p>
-            <p className="text-xs mb-8 mt-1" style={{ color: "var(--text-muted)" }}>{p.unit}</p>
-            <ul className="space-y-3 mb-8">
-              {p.features.map((f, j) => (
-                <li key={j} className="text-sm flex items-start gap-3" style={{ color: "var(--cream)" }}>
-                  <span style={{ color: "var(--gold)", marginTop: 2 }}>✓</span>{f}
-                </li>
-              ))}
-            </ul>
-            <button onClick={() => setPage("Contact")} className={p.badge ? "gold-btn w-full py-3 rounded text-sm font-bold tracking-wider uppercase" : "outline-btn w-full py-3 rounded text-sm font-bold tracking-wider uppercase"}>
-              {p.cta}
-            </button>
+            <div className="p-8 flex flex-col flex-1">
+              <h3 className="font-bold text-2xl mb-1" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{p.plan}</h3>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="font-bold text-4xl" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>{p.price}</span>
+                <span className="text-sm" style={{ color: "var(--text-muted)" }}>{p.unit}</span>
+              </div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {p.features.map((f, j) => (
+                  <li key={j} className="text-sm flex items-start gap-2" style={{ color: "var(--cream)" }}>
+                    <span style={{ color: "var(--gold)" }}>✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => setPage("Contact")}
+                className={`w-full py-3 rounded text-sm font-bold tracking-wider uppercase ${p.badge ? "gold-btn" : "outline-btn"}`}>
+                {p.cta}
+              </button>
+              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi!%20I'm%20interested%20in%20the%20${p.plan}%20plan.`}
+                target="_blank" rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded text-xs font-bold mt-3"
+                style={{ background: "#25D36618", color: "#25D366", border: "1px solid #25D36644", textDecoration: "none" }}>
+                <WhatsAppSVG size={13} /> Ask on WhatsApp
+              </a>
+            </div>
           </div>
         ))}
       </div>
-      <p className="text-center text-xs mt-8" style={{ color: "var(--text-muted)" }}>
-        * All prices are indicative. Final quotes depend on site conditions, design complexity, and material choices.
+      <p className="text-center text-xs mt-10" style={{ color: "var(--text-muted)" }}>
+        * Prices are indicative. Contact us for a site-specific detailed quotation.
       </p>
     </section>
   </div>
 );
 
 // ── Projects Page ──────────────────────────────────────────────────────────
-const ProjectsPage = () => (
-  <div className="pt-16">
-    <section className="relative py-28 overflow-hidden">
-      <img src={IMGS.projects[0]} alt="projects" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)" }} />
-      <div className="relative max-w-7xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-        <SectionLabel>Our Work</SectionLabel>
-        <SectionHeading center>Projects That Define Excellence</SectionHeading>
-      </div>
-    </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data.projects.map((p, i) => (
-          <div key={i} className="card-hover rounded-xl border overflow-hidden" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-            <div style={{ position: "relative", height: 220 }}>
-              <img src={IMGS.projects[i]} alt={p.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              <div style={{ position: "absolute", top: 12, right: 12 }}>
-                <span className="text-xs px-3 py-1 rounded-full font-bold"
-                  style={{ background: p.type === "Residential" ? "rgba(200,146,42,0.9)" : "rgba(44,44,44,0.95)", color: p.type === "Residential" ? "#1A1A1A" : "var(--gold)", border: p.type !== "Residential" ? "1px solid var(--gold)" : "none" }}>
-                  {p.type}
-                </span>
-              </div>
-            </div>
-            <div className="p-6">
-              <h3 className="font-bold text-xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{p.title}</h3>
-              <div className="flex flex-wrap gap-4 text-xs" style={{ color: "var(--text-muted)" }}>
-                <span>📍 {p.location}</span>
-                <span>📐 {p.area}</span>
-                <span>📅 {p.year}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  </div>
-);
+const ProjectsPage = () => {
+  const [filter, setFilter] = useState("All");
+  const [selected, setSelected] = useState(null);
+  const [selectedIdx, setSelectedIdx] = useState(null);
+  const filters = ["All", "Residential", "Commercial"];
+  const filtered = filter === "All" ? data.projects : data.projects.filter(p => p.type === filter);
 
-// ── WHY US Page ────────────────────────────────────────────────────────────
-const WhyUsPage = ({ setPage }) => (
-  <div className="pt-16">
-    {/* Hero */}
-    <section className="relative py-32 overflow-hidden">
-      <img src={IMGS.whyUsBg} alt="why us" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.78)" }} />
-      <div className="relative max-w-7xl mx-auto px-6" style={{ zIndex: 2 }}>
-        <SectionLabel>Why Choose BuildCore</SectionLabel>
-        <h1 className="font-bold mb-6" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2.5rem,6vw,5rem)", maxWidth: 700 }}>
-          The Reasons 500+ Clients Trust Us With Their Dream Projects
-        </h1>
-        <p className="text-lg mb-8" style={{ color: "rgba(245,240,232,0.8)", maxWidth: 580 }}>
-          From award-winning quality to zero hidden costs — here's what makes BuildCore the most trusted construction brand in South India.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <button onClick={() => setPage("Contact")} className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">
-            Get Free Consultation
-          </button>
-          <button onClick={() => setPage("Projects")} className="outline-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">
-            See Our Work
-          </button>
-        </div>
-      </div>
-    </section>
+  return (
+    <div className="pt-16">
+      {selected && <ProjectModal project={selected} index={selectedIdx} onClose={() => setSelected(null)} />}
 
-    {/* Big Stats */}
-    <div style={{ background: "linear-gradient(135deg, #C8922A, #A0701C)" }}>
-      <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[
-          { n: "500+", l: "Projects Delivered" },
-          { n: "98%", l: "Client Satisfaction" },
-          { n: "10+", l: "Industry Awards" },
-          { n: "₹0", l: "Hidden Charges" },
-        ].map((s, i) => (
-          <div key={i} className="text-center">
-            <p className="font-bold text-4xl" style={{ color: "#1A1A1A", fontFamily: "'Barlow Condensed', sans-serif" }}>{s.n}</p>
-            <p className="text-xs uppercase tracking-wider font-semibold mt-1" style={{ color: "rgba(26,26,26,0.75)" }}>{s.l}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* 8 Reasons Cards */}
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <SectionLabel>8 Reasons to Choose Us</SectionLabel>
-          <SectionHeading center>Built on More Than Just Concrete</SectionHeading>
-          <p className="text-base max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-            These aren't marketing claims — they're commitments we've kept on 500+ projects.
+      <section className="relative py-28 overflow-hidden">
+        <img src={IMGS.projects[0]} alt="projects" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)" }} />
+        <div className="relative max-w-7xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
+          <SectionLabel>Our Portfolio</SectionLabel>
+          <SectionHeading center>500+ Projects. Countless Stories.</SectionHeading>
+          <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.75)" }}>
+            Explore our latest completed projects across residential and commercial categories.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {data.whyUs.map((w, i) => (
-            <div key={i} className="why-us-card rounded-xl border p-7" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-3xl">{w.icon}</span>
-                <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: "rgba(200,146,42,0.15)", color: "var(--gold)", border: "1px solid rgba(200,146,42,0.3)" }}>{w.stat}</span>
-              </div>
-              <h3 className="font-bold text-lg mb-3" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{w.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{w.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+      </section>
 
-    {/* Comparison Table */}
-    <section className="py-24" style={{ background: "#111" }}>
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <SectionLabel>How We Compare</SectionLabel>
-          <SectionHeading center>BuildCore vs. Typical Contractors</SectionHeading>
-        </div>
-        <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
-          <div className="grid grid-cols-3 p-4 text-xs font-bold uppercase tracking-wider" style={{ background: "var(--mid)", color: "var(--text-muted)" }}>
-            <span>Feature</span>
-            <span className="text-center" style={{ color: "var(--gold)" }}>BuildCore</span>
-            <span className="text-center">Typical Contractor</span>
+      <section className="py-24" style={{ background: "var(--navy-900)" }}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-center gap-3 mb-12">
+            {filters.map(f => (
+              <button key={f} className={`tab-btn ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)}>{f}</button>
+            ))}
           </div>
-          {[
-            ["Transparent Pricing", "✓ Full itemised quote", "✗ Vague estimates"],
-            ["Dedicated PM", "✓ Senior PM assigned", "✗ Often outsourced"],
-            ["Warranty", "✓ Up to 10 years", "✗ 1 year or none"],
-            ["Progress Updates", "✓ Weekly + dashboard", "✗ Monthly or none"],
-            ["Design In-House", "✓ Architecture + interiors", "✗ Third-party agency"],
-            ["Permits Handled", "✓ Full compliance team", "✗ You manage it"],
-          ].map(([feat, us, them], i) => (
-            <div key={i} className="grid grid-cols-3 p-5 border-t items-center" style={{ borderColor: "var(--border)", background: i % 2 === 0 ? "var(--slate)" : "var(--charcoal)" }}>
-              <span className="text-sm font-semibold" style={{ color: "var(--cream)" }}>{feat}</span>
-              <span className="text-sm text-center" style={{ color: "#4ade80" }}>{us}</span>
-              <span className="text-sm text-center" style={{ color: "var(--text-muted)" }}>{them}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
 
-    {/* CTA */}
-    <section className="relative py-24 overflow-hidden">
-      <img src={IMGS.ctaBg} alt="cta" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(200,146,42,0.9)" }} />
-      <div className="relative max-w-3xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-        <h2 className="font-bold text-4xl mb-4" style={{ color: "#1A1A1A", fontFamily: "'Barlow Condensed', sans-serif" }}>Convinced? Let's Talk.</h2>
-        <p className="text-sm mb-8" style={{ color: "rgba(26,26,26,0.8)" }}>Free consultation. No commitments. Just good advice from experts who care.</p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <button onClick={() => setPage("Contact")} className="px-10 py-4 rounded font-bold text-sm tracking-wider uppercase"
-            style={{ background: "#1A1A1A", color: "#C8922A" }}>Book Free Consultation</button>
-          <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-10 py-4 rounded font-bold text-sm tracking-wider uppercase"
-            style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-            <WhatsAppIcon size={16} /> WhatsApp Now
-          </a>
-        </div>
-      </div>
-    </section>
-  </div>
-);
-
-// ── TESTIMONIALS Page ──────────────────────────────────────────────────────
-const TestimonialsPage = ({ setPage }) => (
-  <div className="pt-16">
-    {/* Hero */}
-    <section className="relative py-32 overflow-hidden">
-      <img src={IMGS.testimonialsBg} alt="testimonials" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.78)" }} />
-      <div className="relative max-w-7xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-        <SectionLabel>Client Testimonials</SectionLabel>
-        <h1 className="font-bold mb-6" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2.5rem,6vw,5rem)" }}>
-          Stories From Those Who Trusted Us
-        </h1>
-        <div className="flex justify-center gap-8 mt-8 flex-wrap">
-          <div className="text-center"><p className="text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>500+</p><p className="text-sm" style={{ color: "var(--text-muted)" }}>Happy Clients</p></div>
-          <div className="text-center"><p className="text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>4.9/5</p><p className="text-sm" style={{ color: "var(--text-muted)" }}>Average Rating</p></div>
-          <div className="text-center"><p className="text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>98%</p><p className="text-sm" style={{ color: "var(--text-muted)" }}>Would Recommend</p></div>
-        </div>
-      </div>
-    </section>
-
-    {/* Featured Testimonials */}
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <SectionLabel>What Clients Say</SectionLabel>
-          <SectionHeading center>Real Words from Real People</SectionHeading>
-        </div>
-
-        {/* Large Featured */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {data.testimonials.slice(0, 2).map((t, i) => (
-            <div key={i} className="testimonial-card rounded-2xl border p-8" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-              <Stars />
-              <p className="text-lg leading-relaxed my-6" style={{ color: "var(--cream)" }}>"{t.feedback}"</p>
-              <div className="flex items-center gap-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
-                <img src={t.img} alt={t.name} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--gold)" }} />
-                <div>
-                  <p className="font-bold" style={{ color: "var(--cream)" }}>{t.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--gold)" }}>{t.company} · {t.location}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {data.testimonials.slice(2).map((t, i) => (
-            <div key={i} className="testimonial-card rounded-xl border p-6" style={{ background: "var(--mid)", borderColor: "var(--border)" }}>
-              <Stars />
-              <p className="text-sm leading-relaxed my-4" style={{ color: "var(--text-muted)" }}>"{t.feedback}"</p>
-              <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: "var(--border)" }}>
-                <img src={t.img} alt={t.name} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--gold)" }} />
-                <div>
-                  <p className="font-semibold text-sm" style={{ color: "var(--cream)" }}>{t.name}</p>
-                  <p className="text-xs" style={{ color: "var(--gold)" }}>{t.location}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    {/* Rating Bar */}
-    <section className="py-16" style={{ background: "#111" }}>
-      <div className="max-w-4xl mx-auto px-6">
-        <p className="text-center font-bold text-xs uppercase tracking-widest mb-10" style={{ color: "var(--gold)" }}>Rating Breakdown</p>
-        {[["5 Stars", 92], ["4 Stars", 6], ["3 Stars", 2]].map(([label, pct], i) => (
-          <div key={i} className="flex items-center gap-4 mb-4">
-            <span className="text-sm w-16 text-right" style={{ color: "var(--cream)" }}>{label}</span>
-            <div className="flex-1 rounded-full h-3" style={{ background: "var(--border)" }}>
-              <div className="h-3 rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg,#C8922A,#E5B04A)", transition: "width 1s" }} />
-            </div>
-            <span className="text-sm w-10" style={{ color: "var(--text-muted)" }}>{pct}%</span>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    {/* CTA */}
-    <section className="py-20 text-center" style={{ background: "var(--charcoal)" }}>
-      <SectionLabel>Join Our Clients</SectionLabel>
-      <h2 className="font-bold text-4xl mb-4" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Start Your BuildCore Story</h2>
-      <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>Free consultation · No obligations · Expert advice</p>
-      <div className="flex flex-wrap justify-center gap-4">
-        <button onClick={() => setPage("Contact")} className="gold-btn px-10 py-4 rounded text-sm font-bold tracking-wider uppercase">Get Free Quote</button>
-        <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-2 px-10 py-4 rounded font-bold text-sm tracking-wider uppercase"
-          style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-          <WhatsAppIcon size={16} /> WhatsApp Us
-        </a>
-      </div>
-    </section>
-  </div>
-);
-
-// ── TEAM Page ──────────────────────────────────────────────────────────────
-const TeamPage = ({ setPage }) => (
-  <div className="pt-16">
-    {/* Hero */}
-    <section className="relative py-32 overflow-hidden">
-      <img src={IMGS.teamBg} alt="team" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.78)" }} />
-      <div className="relative max-w-7xl mx-auto px-6" style={{ zIndex: 2 }}>
-        <SectionLabel>The BuildCore Team</SectionLabel>
-        <h1 className="font-bold mb-4" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: "clamp(2.5rem,6vw,5rem)", maxWidth: 700 }}>
-          The Experts Behind Every Brick
-        </h1>
-        <p className="text-lg" style={{ color: "rgba(245,240,232,0.8)", maxWidth: 560 }}>
-          Our team of 200+ engineers, architects, designers, and project managers bring decades of combined expertise to every project we take on.
-        </p>
-      </div>
-    </section>
-
-    {/* Team Stats */}
-    <div style={{ background: "linear-gradient(90deg, var(--charcoal), #111)" }}>
-      <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[
-          { v: "200+", l: "Team Members" },
-          { v: "15+", l: "Avg. Experience" },
-          { v: "12", l: "Departments" },
-          { v: "100%", l: "In-House Talent" },
-        ].map((s, i) => (
-          <div key={i} className="text-center p-4 rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-            <p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "'Barlow Condensed', sans-serif" }}>{s.v}</p>
-            <p className="text-xs uppercase tracking-wider mt-1" style={{ color: "var(--text-muted)" }}>{s.l}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Leadership Team Cards */}
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <SectionLabel>Leadership</SectionLabel>
-          <SectionHeading center>Meet the Minds Behind BuildCore</SectionHeading>
-          <p className="text-base max-w-xl mx-auto" style={{ color: "var(--text-muted)" }}>
-            Seasoned professionals who've collectively led over ₹2,000 crore in construction projects.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {data.team.map((m, i) => (
-            <div key={i} className="team-card rounded-2xl border overflow-hidden" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-              <div style={{ position: "relative", height: 280 }}>
-                <img src={IMGS.team[i]} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-                <div className="team-overlay">
-                  <p className="font-bold text-xl mb-2" style={{ color: "#1A1A1A", fontFamily: "'Barlow Condensed', sans-serif" }}>{m.name}</p>
-                  <p className="text-sm font-bold mb-4" style={{ color: "#1A1A1A" }}>{m.role}</p>
-                  <a href={m.linkedin} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold"
-                    style={{ background: "#1A1A1A", color: "#C8922A", textDecoration: "none" }}>
-                    <LinkedInIcon /> View LinkedIn
-                  </a>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-bold text-lg" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{m.name}</p>
-                    <p className="text-xs uppercase tracking-wider mt-0.5" style={{ color: "var(--gold)" }}>{m.role}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+            {filtered.map((p, i) => {
+              const origIdx = data.projects.indexOf(p);
+              return (
+                <div key={i} className="card-hover rounded-xl border overflow-hidden cursor-pointer" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}
+                  onClick={() => { setSelected(p); setSelectedIdx(origIdx); }}>
+                  <div style={{ position: "relative", height: 220 }}>
+                    <img src={IMGS.projects[origIdx]} alt={p.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)" }} />
+                    <div style={{ position: "absolute", top: 12, right: 12 }}>
+                      <span className="text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider"
+                        style={{ background: "rgba(200,146,42,0.9)", color: "var(--navy-900)" }}>{p.type}</span>
+                    </div>
+                    <div style={{ position: "absolute", bottom: 12, left: 16 }}>
+                      <p className="text-xs" style={{ color: "rgba(245,240,232,0.7)" }}>📍 {p.location}</p>
+                    </div>
                   </div>
-                  <span className="text-xs px-2 py-1 rounded-full font-bold" style={{ background: "rgba(200,146,42,0.15)", color: "var(--gold)", border: "1px solid rgba(200,146,42,0.3)", whiteSpace: "nowrap" }}>{m.exp}</span>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>{p.title}</h3>
+                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{p.year}</span>
+                    </div>
+                    <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>{p.area} · {p.location}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold" style={{ color: "var(--gold)" }}>{p.value}</span>
+                      <span className="text-xs font-bold" style={{ color: "var(--gold)" }}>View Details →</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{m.bio}</p>
+              );
+            })}
+          </div>
+
+          <div className="text-center mb-14">
+            <SectionLabel>Testimonials</SectionLabel>
+            <SectionHeading center>What Our Clients Say</SectionHeading>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {data.testimonials.map((t, i) => (
+              <div key={i} className="card-hover p-8 rounded-xl border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
+                <Stars />
+                <p className="text-base leading-relaxed my-5 italic" style={{ color: "var(--cream)" }}>"{t.feedback}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: "var(--border-light)" }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
+                    style={{ background: "var(--gold)", color: "var(--navy-900)", fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18 }}>
+                    {t.name.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm" style={{ color: "var(--cream)" }}>{t.name}</p>
+                    <p className="text-xs" style={{ color: "var(--gold)" }}>{t.company} · {t.location}</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
+  );
+};
 
-    {/* Join Our Team */}
-    <section className="py-20" style={{ background: "#111" }}>
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <SectionLabel>Careers</SectionLabel>
-        <h2 className="font-bold text-4xl mb-4" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>
-          Want to Build with Us?
-        </h2>
-        <p className="text-base mb-8" style={{ color: "var(--text-muted)" }}>
-          We're always looking for talented engineers, architects, and designers who share our passion for building excellence. Join a team that values craftsmanship, integrity, and growth.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          {[
-            { icon: "💼", title: "Competitive Pay", desc: "Above-market salaries and annual increments" },
-            { icon: "📈", title: "Growth Path", desc: "Clear career ladder with mentorship programs" },
-            { icon: "🏥", title: "Full Benefits", desc: "Health insurance, travel allowance & more" },
-          ].map((b, i) => (
-            <div key={i} className="p-5 rounded-xl border text-left" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-              <span className="text-2xl mb-3 block">{b.icon}</span>
-              <p className="font-bold mb-1" style={{ color: "var(--cream)" }}>{b.title}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{b.desc}</p>
-            </div>
-          ))}
-        </div>
-        <a href={`mailto:careers@buildcore.in`}
-          className="gold-btn inline-flex items-center gap-2 px-10 py-4 rounded text-sm font-bold tracking-wider uppercase">
-          ✉ Send Your Resume
-        </a>
-      </div>
-    </section>
-  </div>
-);
-
-// ── Blog Page ───────────────────────────────────────────────────────────────
+// ── Blog Page ──────────────────────────────────────────────────────────────
 const BlogPage = () => (
   <div className="pt-16">
     <section className="relative py-28 overflow-hidden">
       <img src={IMGS.blog[0]} alt="blog" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.78)" }} />
       <div className="relative max-w-7xl mx-auto px-6 text-center" style={{ zIndex: 2 }}>
-        <SectionLabel>Insights & Guides</SectionLabel>
+        <SectionLabel>Insights & Resources</SectionLabel>
         <SectionHeading center>The BuildCore Knowledge Hub</SectionHeading>
         <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(245,240,232,0.75)" }}>
-          Expert articles on construction trends, budgeting tips, and design inspiration.
+          Expert articles, construction guides, and industry insights.
         </p>
       </div>
     </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
+    <section className="py-24" style={{ background: "var(--navy-900)" }}>
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
         {data.blog.map((b, i) => (
-          <div key={i} className="card-hover rounded-xl border overflow-hidden" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+          <div key={i} className="card-hover rounded-xl border overflow-hidden" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
             <div style={{ position: "relative", height: 220 }}>
               <img src={IMGS.blog[i]} alt={b.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               <div style={{ position: "absolute", top: 14, left: 14 }}>
                 <span className="text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider"
-                  style={{ background: "rgba(200,146,42,0.9)", color: "#1A1A1A" }}>{b.category}</span>
+                  style={{ background: "rgba(200,146,42,0.9)", color: "var(--navy-900)" }}>{b.category}</span>
               </div>
             </div>
             <div className="p-8">
@@ -1299,30 +1594,32 @@ const FAQPage = ({ setPage }) => (
         <SectionHeading center>Questions We Hear All the Time</SectionHeading>
       </div>
     </section>
-    <section className="py-24" style={{ background: "var(--charcoal)" }}>
+    <section className="py-24" style={{ background: "var(--navy-900)" }}>
       <div className="max-w-3xl mx-auto px-6 space-y-4">
         {data.faq.map((f, i) => (
-          <details key={i} className="faq-item rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+          <details key={i} className="faq-item rounded-xl border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
             <summary className="flex items-center justify-between p-6 gap-4">
               <span className="font-semibold text-base" style={{ color: "var(--cream)" }}>{f.question}</span>
               <span className="text-xl flex-shrink-0" style={{ color: "var(--gold)" }}>+</span>
             </summary>
-            <div className="px-6 pb-6 border-t" style={{ borderColor: "var(--border)" }}>
+            <div className="px-6 pb-6 border-t" style={{ borderColor: "var(--border-light)" }}>
               <p className="text-sm leading-relaxed pt-4" style={{ color: "var(--text-muted)" }}>{f.answer}</p>
             </div>
           </details>
         ))}
       </div>
       <div className="max-w-3xl mx-auto px-6 mt-12 p-8 rounded-xl border text-center"
-        style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+        style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
         <p className="font-bold text-2xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Still have questions?</p>
         <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Our team is happy to answer anything.</p>
         <div className="flex flex-wrap justify-center gap-3">
-          <button onClick={() => setPage("Contact")} className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">Contact Us</button>
+          <button onClick={() => setPage("Contact")} className="gold-btn px-8 py-3 rounded text-sm font-bold tracking-wider uppercase">
+            Contact Us
+          </button>
           <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-8 py-3 rounded text-sm font-bold tracking-wider uppercase"
             style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-            <WhatsAppIcon size={14} /> WhatsApp
+            <WhatsAppSVG size={14} /> WhatsApp
           </a>
         </div>
       </div>
@@ -1348,71 +1645,40 @@ const ContactPage = () => {
             target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-full text-sm font-bold"
             style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-            <WhatsAppIcon size={16} /> Quick Chat on WhatsApp
+            <WhatsAppSVG size={16} /> Quick Chat on WhatsApp
           </a>
         </div>
       </section>
 
-      <section className="py-24" style={{ background: "var(--charcoal)" }}>
+      <section className="py-24" style={{ background: "var(--navy-900)" }}>
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div>
             <h3 className="font-bold text-2xl mb-8" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Contact Information</h3>
             {[
-              { icon: "📍", label: "Address", val: data.contact.address, link: `https://maps.google.com/?q=${encodeURIComponent(data.contact.mapAddress)}` },
-              { icon: "📞", label: "Phone", val: data.contact.phone, link: `tel:${data.contact.phone}` },
-              { icon: "✉️", label: "Email", val: data.contact.email, link: `mailto:${data.contact.email}` },
+              { icon: "📍", label: "Address", val: data.contact.address },
+              { icon: "📞", label: "Phone", val: data.contact.phone },
+              { icon: "✉️", label: "Email", val: data.contact.email },
               { icon: "🕐", label: "Hours", val: data.contact.hours },
             ].map((c, i) => (
               <div key={i} className="flex items-start gap-4 mb-4 p-5 rounded-xl border"
-                style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
+                style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
                 <span className="text-xl">{c.icon}</span>
-                <div className="flex-1">
+                <div>
                   <p className="text-xs uppercase tracking-wider mb-1 font-bold" style={{ color: "var(--gold)" }}>{c.label}</p>
-                  {c.link ? (
-                    <a href={c.link} target="_blank" rel="noopener noreferrer" className="text-sm" style={{ color: "var(--cream)", textDecoration: "none", transition: "color 0.2s" }}
-                      onMouseOver={e => e.currentTarget.style.color = "var(--gold)"}
-                      onMouseOut={e => e.currentTarget.style.color = "var(--cream)"}>{c.val}</a>
-                  ) : (
-                    <p className="text-sm" style={{ color: "var(--cream)" }}>{c.val}</p>
-                  )}
+                  <p className="text-sm" style={{ color: "var(--cream)" }}>{c.val}</p>
                 </div>
-                {c.label === "Address" && (
-                  <a href={c.link} target="_blank" rel="noopener noreferrer"
-                    className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
-                    style={{ background: "var(--gold)", color: "#1A1A1A", textDecoration: "none" }}>
-                    Open Map
-                  </a>
-                )}
               </div>
             ))}
 
-            {/* Google Maps Embed */}
-            <div className="mt-6 rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
-              <iframe
-                title="BuildCore Location"
-                src="https://maps.google.com/maps?q=Brigade+Road+Bangalore&output=embed&z=15"
-                width="100%"
-                height="220"
-                style={{ border: 0, display: "block" }}
-                allowFullScreen
-                loading="lazy"
-              />
-              <a href={`https://maps.google.com/?q=${encodeURIComponent(data.contact.mapAddress)}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 py-3 text-sm font-bold"
-                style={{ background: "var(--slate)", color: "var(--gold)", textDecoration: "none" }}>
-                📍 Open Full Map in Google Maps →
-              </a>
-            </div>
-
-            {/* WhatsApp Card */}
             <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I'd%20like%20a%20consultation.`}
               target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-4 p-5 rounded-xl border mt-4"
-              style={{ background: "#25D36614", borderColor: "#25D36644", textDecoration: "none", transition: "all 0.2s" }}
+              className="flex items-center gap-4 p-5 rounded-xl border mb-6"
+              style={{ background: "#25D36614", borderColor: "#25D36644", textDecoration: "none", transition: "all 0.2s", display: "flex" }}
               onMouseOver={e => e.currentTarget.style.background = "#25D36624"}
               onMouseOut={e => e.currentTarget.style.background = "#25D36614"}>
-              <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "#25D366" }}>
-                <WhatsAppIcon size={22} />
+              <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-content center"
+                style={{ background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <WhatsAppSVG size={22} />
               </div>
               <div>
                 <p className="text-sm font-bold" style={{ color: "#25D366" }}>WhatsApp Us Directly</p>
@@ -1421,87 +1687,98 @@ const ContactPage = () => {
               <span className="ml-auto" style={{ color: "#25D366" }}>→</span>
             </a>
 
-            {/* Social Follow */}
-            <div className="mt-6 p-5 rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-              <p className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: "var(--cream)" }}>Follow Us on Social Media</p>
-              <div className="flex gap-3 flex-wrap">
-                <a href={data.contact.instagram} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold"
-                  style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", color: "#fff", textDecoration: "none" }}>
-                  <InstagramIcon /> Instagram
+            <div className="p-5 rounded-xl border" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
+              <p className="text-xs uppercase tracking-wider font-bold mb-4" style={{ color: "var(--gold)" }}>Follow Us</p>
+              <SocialLinks />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <a href={data.social.instagram} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg text-xs font-bold"
+                  style={{ background: "rgba(225,48,108,0.1)", color: "#E1306C", border: "1px solid rgba(225,48,108,0.3)", textDecoration: "none" }}>
+                  <InstagramIcon size={14} color="#E1306C" /> Instagram
                 </a>
-                <a href={data.contact.facebook} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold"
-                  style={{ background: "#1877F2", color: "#fff", textDecoration: "none" }}>
-                  <FacebookIcon /> Facebook
-                </a>
-                <a href={data.contact.linkedin} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold"
-                  style={{ background: "#0A66C2", color: "#fff", textDecoration: "none" }}>
-                  <LinkedInIcon /> LinkedIn
-                </a>
-                <a href={data.contact.youtube} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold"
-                  style={{ background: "#FF0000", color: "#fff", textDecoration: "none" }}>
-                  <YouTubeIcon /> YouTube
+                <a href={data.social.facebook} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg text-xs font-bold"
+                  style={{ background: "rgba(24,119,242,0.1)", color: "#1877F2", border: "1px solid rgba(24,119,242,0.3)", textDecoration: "none" }}>
+                  <FacebookIcon size={14} color="#1877F2" /> Facebook
                 </a>
               </div>
             </div>
           </div>
 
-          <div className="p-8 rounded-xl border" style={{ background: "var(--slate)", borderColor: "var(--border)" }}>
-            {sent ? (
-              <div className="text-center py-16">
-                <p className="text-5xl mb-4">✅</p>
-                <h3 className="font-bold text-2xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Message Sent!</h3>
-                <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Our team will reach out within 24 hours.</p>
-                <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi!%20I%20just%20submitted%20a%20form.%20Following%20up!`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded text-sm font-bold"
-                  style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
-                  <WhatsAppIcon size={14} /> Or Follow Up on WhatsApp
-                </a>
+          <div>
+            <div className="p-8 rounded-xl border mb-8" style={{ background: "var(--navy-800)", borderColor: "var(--border-light)" }}>
+              {sent ? (
+                <div className="text-center py-16">
+                  <p className="text-5xl mb-4">✅</p>
+                  <h3 className="font-bold text-2xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Message Sent!</h3>
+                  <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Our team will reach out within 24 hours.</p>
+                  <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi!%20I%20just%20submitted%20a%20form.%20Following%20up!`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded text-sm font-bold"
+                    style={{ background: "#25D366", color: "#fff", textDecoration: "none" }}>
+                    <WhatsAppSVG size={14} /> Or Follow Up on WhatsApp
+                  </a>
+                </div>
+              ) : (
+                <form onSubmit={e => { e.preventDefault(); setSent(true); }} className="space-y-4">
+                  <h4 className="font-bold text-xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Send Us a Message</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Full Name *</label>
+                      <input required placeholder="Ravi Kumar" value={form.name} onChange={e => update("name", e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Email *</label>
+                      <input type="email" required placeholder="you@email.com" value={form.email} onChange={e => update("email", e.target.value)} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Phone</label>
+                    <input type="tel" placeholder="+91 98765 43210" value={form.phone} onChange={e => update("phone", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Service Interested In</label>
+                    <select value={form.service} onChange={e => update("service", e.target.value)}
+                      style={{ background: "var(--navy-600)", border: "1px solid var(--border-light)", color: form.service ? "var(--cream)" : "#9A9A9A", padding: "12px 16px", width: "100%", borderRadius: 4, outline: "none", fontFamily: "'Barlow', sans-serif" }}>
+                      <option value="">Select a service</option>
+                      {data.services.map(s => <option key={s.title} value={s.title}>{s.title}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Message *</label>
+                    <textarea required rows={4} placeholder="Tell us about your project..." value={form.message} onChange={e => update("message", e.target.value)} />
+                  </div>
+                  <button type="submit" className="gold-btn w-full py-4 rounded text-sm font-bold tracking-wider uppercase">
+                    Send Message →
+                  </button>
+                  <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I'd%20like%20a%20quote%20for%20${encodeURIComponent(form.service || "construction")}.`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded text-sm font-bold tracking-wider uppercase"
+                    style={{ background: "#25D366", color: "#fff", textDecoration: "none", display: "flex" }}>
+                    <WhatsAppSVG size={16} /> Or Message on WhatsApp Instead
+                  </a>
+                </form>
+              )}
+            </div>
+
+            <div className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--border-light)" }}>
+              <div className="p-4 flex items-center gap-3" style={{ background: "var(--navy-800)", borderBottom: "1px solid var(--border)" }}>
+                <span className="text-lg">📍</span>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "var(--cream)" }}>Our Office — Brigade Road, Bangalore</p>
+                  <a href="https://maps.google.com/?q=Brigade+Road+Bangalore" target="_blank" rel="noopener noreferrer"
+                    className="text-xs font-semibold" style={{ color: "var(--gold)", textDecoration: "none" }}>
+                    Open in Google Maps →
+                  </a>
+                </div>
               </div>
-            ) : (
-              <form onSubmit={e => { e.preventDefault(); setSent(true); }} className="space-y-4">
-                <h4 className="font-bold text-xl mb-2" style={{ color: "var(--cream)", fontFamily: "'Barlow Condensed', sans-serif" }}>Send Us a Message</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Full Name *</label>
-                    <input required placeholder="Ravi Kumar" value={form.name} onChange={e => update("name", e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Email *</label>
-                    <input type="email" required placeholder="you@email.com" value={form.email} onChange={e => update("email", e.target.value)} />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Phone</label>
-                  <input type="tel" placeholder="+91 98765 43210" value={form.phone} onChange={e => update("phone", e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Service Interested In</label>
-                  <select value={form.service} onChange={e => update("service", e.target.value)}
-                    style={{ background: "var(--mid)", border: "1px solid var(--border)", color: form.service ? "var(--cream)" : "#9A9A9A", padding: "12px 16px", width: "100%", borderRadius: 4, outline: "none", fontFamily: "'Barlow', sans-serif" }}>
-                    <option value="">Select a service</option>
-                    {data.services.map(s => <option key={s.title} value={s.title}>{s.title}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--text-muted)" }}>Message *</label>
-                  <textarea required rows={4} placeholder="Tell us about your project..." value={form.message} onChange={e => update("message", e.target.value)} />
-                </div>
-                <button type="submit" className="gold-btn w-full py-4 rounded text-sm font-bold tracking-wider uppercase">
-                  Send Message →
-                </button>
-                <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I'd%20like%20a%20quote%20for%20${encodeURIComponent(form.service || "construction")}.`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded text-sm font-bold tracking-wider uppercase"
-                  style={{ background: "#25D366", color: "#fff", textDecoration: "none", display: "flex" }}>
-                  <WhatsAppIcon size={16} /> Or Message on WhatsApp Instead
-                </a>
-              </form>
-            )}
+              <iframe
+                title="BuildCore Office Location"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.985285566604!2d77.59219931469194!3d12.971611290856!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae167aded5e74f%3A0x9f155679a0a93e3!2sBrigade%20Rd%2C%20Bengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin"
+                width="100%" height="280" style={{ border: 0, display: "block" }}
+                allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
           </div>
         </div>
       </section>
@@ -1525,23 +1802,22 @@ export default function App() {
   const renderPage = () => {
     const p = { setPage };
     switch (page) {
-      case "Home":         return <HomePage {...p} />;
-      case "About":        return <AboutPage {...p} />;
-      case "Services":     return <ServicesPage {...p} />;
-      case "Pricing":      return <PricingPage {...p} />;
-      case "Projects":     return <ProjectsPage />;
-      case "Why Us":       return <WhyUsPage {...p} />;
-      case "Testimonials": return <TestimonialsPage {...p} />;
-      case "Team":         return <TeamPage {...p} />;
-      case "Blog":         return <BlogPage />;
-      case "FAQ":          return <FAQPage {...p} />;
-      case "Contact":      return <ContactPage />;
-      default:             return <HomePage {...p} />;
+      case "Home":     return <HomePage {...p} />;
+      case "About":    return <AboutPage {...p} />;
+      case "Services": return <ServicesPage {...p} />;
+      case "Why Us":   return <WhyUsPage {...p} />;
+      case "Team":     return <TeamPage />;
+      case "Pricing":  return <PricingPage {...p} />;
+      case "Projects": return <ProjectsPage />;
+      case "Blog":     return <BlogPage />;
+      case "FAQ":      return <FAQPage {...p} />;
+      case "Contact":  return <ContactPage />;
+      default:         return <HomePage {...p} />;
     }
   };
 
   return (
-    <div style={{ background: "var(--charcoal)", minHeight: "100vh", color: "var(--cream)" }}>
+    <div style={{ background: "var(--navy-900)", minHeight: "100vh", color: "var(--cream)" }}>
       <FontLoader />
       <Navbar page={page} setPage={setPage} scrolled={scrolled} />
       <main>{renderPage()}</main>
