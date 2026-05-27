@@ -1,8 +1,45 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 
 if (typeof document !== "undefined") {
   document.title = "BuildCore Constructions | Premium Construction Services";
 }
+
+/* ─── Auth Context ────────────────────────────────────────────────────────── */
+const AuthContext = createContext(null);
+
+const useAuth = () => useContext(AuthContext);
+
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("buildcore_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  });
+
+  const login = (userData) => {
+    const u = { ...userData, loginTime: new Date().toISOString() };
+    setUser(u);
+    try { localStorage.setItem("buildcore_user", JSON.stringify(u)); } catch {}
+  };
+
+  const logout = () => {
+    setUser(null);
+    try { localStorage.removeItem("buildcore_user"); } catch {}
+  };
+
+  const updateUser = (updates) => {
+    const u = { ...user, ...updates };
+    setUser(u);
+    try { localStorage.setItem("buildcore_user", JSON.stringify(u)); } catch {}
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 const FontLoader = () => (
   <style>{`
@@ -109,11 +146,26 @@ const FontLoader = () => (
     .splash-bar { width: 120px; height: 3px; border-radius: 2px; margin-top: 24px; background: linear-gradient(90deg, #9B5DE5, var(--gold)); animation: splashLogo 2.8s ease forwards; }
     .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; border: 1.5px solid var(--border-light); background: transparent; color: var(--cream); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; }
     .back-btn:hover { border-color: var(--gold); color: var(--gold); }
-    /* Gallery thumbnail hover */
     .gallery-thumb { border-radius: 8px; overflow: hidden; cursor: pointer; transition: border .2s, transform .2s; }
     .gallery-thumb:hover { transform: scale(1.04); }
     .gallery-thumb img { width: 100%; height: 80px; object-fit: cover; display: block; transition: transform .3s; }
     .gallery-thumb:hover img { transform: scale(1.08); }
+    /* Auth styles */
+    .auth-input-group { margin-bottom: 16px; }
+    .auth-input-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
+    .auth-tab { padding: 10px 24px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border-light); background: transparent; color: var(--text-muted); }
+    .auth-tab.active { background: linear-gradient(135deg, #7C3AED, var(--gold)); color: #fff; border: none; }
+    .auth-tab:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+    .profile-tab { padding: 10px 20px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; background: transparent; color: var(--text-muted); display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
+    .profile-tab.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,160,48,0.15)); color: var(--gold); border-color: rgba(232,160,48,0.25); }
+    .profile-tab:hover:not(.active) { color: var(--cream); background: rgba(255,255,255,0.04); }
+    /* User avatar in navbar */
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; border: 2px solid var(--gold); flex-shrink: 0; }
+    .user-dropdown { position: absolute; top: 50px; right: 0; background: var(--navy-800); border: 1px solid var(--border-light); border-radius: 12px; min-width: 180px; box-shadow: 0 16px 48px rgba(0,0,0,.6); z-index: 100; overflow: hidden; }
+    .user-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: var(--cream); cursor: pointer; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
+    .user-dropdown-item:hover { background: rgba(232,160,48,0.1); color: var(--gold); }
+    .user-dropdown-item.danger:hover { background: rgba(220,38,38,0.12); color: #FC8181; }
+    .strength-bar { height: 4px; border-radius: 2px; transition: all 0.3s; }
   `}</style>
 );
 
@@ -143,6 +195,18 @@ const SmartphoneIcon=({size=24,color="var(--gold)"})=><svg width={size} height={
 const HomeIcon2=({size=20,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
 const BuildingIcon=({size=20,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22V12h6v10"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></svg>;
 const ArrowLeftIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>;
+const UserIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+const LogOutIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const LockIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const MailIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+const PhoneIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
+const MapPinIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+const HeartIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+const EyeIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+const EyeOffIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+const CheckCircleIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const BellIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+const ShieldIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 
 /* ─── Images ─────────────────────────────────────────────────────────────── */
 const IMGS = {
@@ -178,8 +242,6 @@ const IMGS = {
     "https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=600&q=80",
     "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80",
   ],
-  // ── Each project gets its own 4-image gallery pool ──────────────────────
-  // projects[i] is used as the "card" thumbnail AND the first gallery image.
   projects: [
     "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=700&q=80",
     "https://images.unsplash.com/photo-1497366216548-37526070297c?w=700&q=80",
@@ -188,7 +250,6 @@ const IMGS = {
     "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=700&q=80",
     "https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=700&q=80",
   ],
-  // Shared detail pool — images 1-3 come from here (index 0 = project card image)
   projectDetails: [
     "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80",
     "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
@@ -222,7 +283,6 @@ const IMGS = {
 
 /* ─── Data ────────────────────────────────────────────────────────────────── */
 const data = {
-  // ── CHANGE 1: Added "Project Detail" to navbar links ──────────────────────
   navbar: { logo:"BuildCore", links:["Home","About","Services","Why Us","Team","Pricing","Projects","FAQ","Contact"] },
   home: {
     stats:[
@@ -389,11 +449,21 @@ const SplashScreen=()=>(
   </div>
 );
 
+/* ─── User Avatar helper ──────────────────────────────────────────────────── */
+const getInitials = (name) => name ? name.split(" ").map(n=>n[0]).join("").toUpperCase().slice(0,2) : "U";
+
 /* ─── Navbar ──────────────────────────────────────────────────────────────── */
-// ── CHANGE 1 (continued): Navbar renders all links including "Project Detail".
-// Clicking "Project Detail" sets page to "Project Detail" which renderPage()
-// maps to <ProjectsPage> — so users land on the Projects list and can drill in.
-const Navbar=({page,setPage,scrolled})=>(
+const Navbar=({page,setPage,scrolled})=>{
+  const { user, logout } = useAuth();
+  const [dropOpen, setDropOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setDropOpen(false);
+    setPage("Home");
+  };
+
+  return(
   <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:50,transition:"all .3s",
     background:scrolled?"rgba(7,5,15,0.97)":"rgba(7,5,15,0.18)",
     backdropFilter:"blur(16px)",
@@ -408,7 +478,7 @@ const Navbar=({page,setPage,scrolled})=>(
       <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
         {data.navbar.links.map(l=>(
           <button key={l} onClick={()=>setPage(l)}
-            className={`nav-link ${page===l||(l==="Project Detail"&&page==="Project Detail")?"active":""}`}>
+            className={`nav-link ${page===l?"active":""}`}>
             {l}
           </button>
         ))}
@@ -416,11 +486,47 @@ const Navbar=({page,setPage,scrolled})=>(
           style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:6,background:"#25D366",color:"#fff",textDecoration:"none",fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"}}>
           <WhatsAppSVG size={13}/> WhatsApp
         </a>
-        <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"8px 18px",borderRadius:6,fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase"}}>Get Quote</button>
+        {user ? (
+          <div style={{position:"relative"}}>
+            <button
+              onClick={()=>setDropOpen(o=>!o)}
+              style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:8}}>
+              <div className="user-avatar">{getInitials(user.name)}</div>
+              <span style={{fontSize:12,fontWeight:600,color:"var(--cream)",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name.split(" ")[0]}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            {dropOpen && (
+              <div className="user-dropdown" onClick={()=>setDropOpen(false)}>
+                <div style={{padding:"12px 16px",borderBottom:"1px solid var(--border-light)"}}>
+                  <p style={{fontSize:13,fontWeight:700,color:"var(--cream)",marginBottom:2}}>{user.name}</p>
+                  <p style={{fontSize:11,color:"var(--text-muted)"}}>{user.email}</p>
+                </div>
+                <button className="user-dropdown-item" onClick={()=>{ setPage("Profile"); setDropOpen(false); }}>
+                  <UserIcon size={16} color="var(--text-muted)"/> My Profile
+                </button>
+                <button className="user-dropdown-item" onClick={()=>{ setPage("Contact"); setDropOpen(false); }}>
+                  <MessageSquareIcon size={16} color="var(--text-muted)"/> Get a Quote
+                </button>
+                <div style={{height:"1px",background:"var(--border-light)",margin:"4px 0"}}/>
+                <button className="user-dropdown-item danger" onClick={handleLogout}>
+                  <LogOutIcon size={16} color="currentColor"/> Sign Out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button onClick={()=>setPage("Login")} className="gold-btn" style={{padding:"8px 18px",borderRadius:6,fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
+            <UserIcon size={13} color="var(--navy-900)"/> Login
+          </button>
+        )}
+        {!user && (
+          <button onClick={()=>setPage("Contact")} className="outline-btn" style={{padding:"8px 18px",borderRadius:6,fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase"}}>Get Quote</button>
+        )}
       </div>
     </div>
   </nav>
-);
+  );
+};
 
 /* ─── Footer ──────────────────────────────────────────────────────────────── */
 const Footer=({setPage})=>(
@@ -565,6 +671,581 @@ const FollowUsSection=()=>{
         </div>
       </div>
     </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ─── LOGIN / REGISTER PAGE ───────────────────────────────────────────────
+   ═══════════════════════════════════════════════════════════════════════════ */
+const LoginPage = ({ setPage }) => {
+  const { login } = useAuth();
+  const [tab, setTab] = useState("login"); // "login" | "register"
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Login state
+  const [loginForm, setLoginForm] = useState({ email:"", password:"" });
+
+  // Register state
+  const [regForm, setRegForm] = useState({ name:"", email:"", phone:"", city:"", password:"", confirm:"" });
+
+  // Password strength
+  const pwStrength = (pw) => {
+    let s = 0;
+    if (pw.length >= 8) s++;
+    if (/[A-Z]/.test(pw)) s++;
+    if (/[0-9]/.test(pw)) s++;
+    if (/[^A-Za-z0-9]/.test(pw)) s++;
+    return s; // 0-4
+  };
+  const strengthLabel = ["Weak","Fair","Good","Strong"];
+  const strengthColor = ["#EF4444","#F59E0B","#3B82F6","#22C55E"];
+  const strength = pwStrength(regForm.password);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError("");
+    // Simulate auth — in production connect to your backend
+    const stored = (() => { try { return JSON.parse(localStorage.getItem("buildcore_users") || "[]"); } catch { return []; } })();
+    const found = stored.find(u => u.email === loginForm.email && u.password === loginForm.password);
+    if (!found) { setError("Incorrect email or password."); return; }
+    login({ name: found.name, email: found.email, phone: found.phone, city: found.city, joinDate: found.joinDate });
+    setPage("Profile");
+  };
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    setError("");
+    if (regForm.password !== regForm.confirm) { setError("Passwords do not match."); return; }
+    if (regForm.password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    const stored = (() => { try { return JSON.parse(localStorage.getItem("buildcore_users") || "[]"); } catch { return []; } })();
+    if (stored.find(u => u.email === regForm.email)) { setError("An account with this email already exists."); return; }
+    const newUser = { name: regForm.name, email: regForm.email, phone: regForm.phone, city: regForm.city, password: regForm.password, joinDate: new Date().toLocaleDateString("en-IN", { month:"long", year:"numeric" }) };
+    stored.push(newUser);
+    try { localStorage.setItem("buildcore_users", JSON.stringify(stored)); } catch {}
+    login({ name: newUser.name, email: newUser.email, phone: newUser.phone, city: newUser.city, joinDate: newUser.joinDate });
+    setSuccess("Account created! Welcome to BuildCore.");
+    setTimeout(() => setPage("Profile"), 1200);
+  };
+
+  return (
+    <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F 0%,#0F0A20 30%,#1A0D3A 65%,#07050F 100%)"}}>
+      {/* Hero */}
+      <section style={{position:"relative",padding:"80px 0 0",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <img src={IMGS.heroSlides[2]} alt="bg" style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.18}}/>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(7,5,15,0.6),var(--navy-900))"}}/>
+        </div>
+        <div style={{position:"relative",maxWidth:520,margin:"0 auto",padding:"0 24px",textAlign:"center",zIndex:2,paddingBottom:40}}>
+          <p style={{fontSize:36,fontWeight:800,letterSpacing:"0.1em",fontFamily:"'Barlow Condensed',sans-serif",color:"var(--gold)",lineHeight:1,marginBottom:6}}>
+            BUILD<span style={{color:"var(--cream)"}}>CORE</span>
+          </p>
+          <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:0}}>Your trusted construction partner</p>
+        </div>
+      </section>
+
+      {/* Card */}
+      <div style={{maxWidth:480,margin:"0 auto",padding:"0 24px 80px"}}>
+        <div style={{padding:40,borderRadius:20,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",boxShadow:"0 32px 80px rgba(0,0,0,.5)"}}>
+
+          {/* Tabs */}
+          <div style={{display:"flex",gap:8,marginBottom:32,background:"var(--navy-800)",padding:4,borderRadius:10}}>
+            {["login","register"].map(t=>(
+              <button key={t} onClick={()=>{setTab(t);setError("");setSuccess("");}}
+                style={{flex:1,padding:"10px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",transition:"all 0.2s",border:"none",
+                  background:tab===t?"linear-gradient(135deg,#7C3AED,var(--gold))":"transparent",
+                  color:tab===t?"#fff":"var(--text-muted)"}}>
+                {t==="login"?"Sign In":"Create Account"}
+              </button>
+            ))}
+          </div>
+
+          {error && (
+            <div style={{padding:"12px 16px",borderRadius:8,background:"rgba(220,38,38,0.12)",border:"1px solid rgba(220,38,38,0.3)",marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:16}}>⚠️</span>
+              <p style={{fontSize:13,color:"#FC8181",margin:0}}>{error}</p>
+            </div>
+          )}
+          {success && (
+            <div style={{padding:"12px 16px",borderRadius:8,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.3)",marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
+              <CheckCircleIcon size={16} color="#22C55E"/>
+              <p style={{fontSize:13,color:"#22C55E",margin:0}}>{success}</p>
+            </div>
+          )}
+
+          {tab === "login" ? (
+            <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:0}}>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:24}}>Welcome back</h3>
+              <div className="auth-input-group">
+                <label>Email address</label>
+                <div style={{position:"relative"}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={16} color="var(--text-muted)"/></span>
+                  <input type="email" required placeholder="you@email.com" value={loginForm.email} onChange={e=>setLoginForm(p=>({...p,email:e.target.value}))} style={{paddingLeft:40}}/>
+                </div>
+              </div>
+              <div className="auth-input-group">
+                <label>Password</label>
+                <div style={{position:"relative"}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={16} color="var(--text-muted)"/></span>
+                  <input type={showPwd?"text":"password"} required placeholder="Enter your password" value={loginForm.password} onChange={e=>setLoginForm(p=>({...p,password:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
+                  <button type="button" onClick={()=>setShowPwd(o=>!o)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:0}}>
+                    {showPwd?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}
+                  </button>
+                </div>
+              </div>
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:20}}>
+                <button type="button" style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:"var(--gold)",fontWeight:600}}>Forgot password?</button>
+              </div>
+              <button type="submit" className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:16}}>Sign In →</button>
+              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I%20need%20help%20with%20my%20account.`} target="_blank" rel="noopener noreferrer"
+                style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"12px",borderRadius:8,fontSize:12,fontWeight:700,background:"rgba(37,211,102,.1)",color:"#25D366",border:"1px solid rgba(37,211,102,.3)",textDecoration:"none"}}>
+                <WhatsAppSVG size={14}/> Need help? Chat on WhatsApp
+              </a>
+              <p style={{fontSize:12,color:"var(--text-muted)",textAlign:"center",marginTop:20}}>
+                Don't have an account?{" "}
+                <button type="button" onClick={()=>setTab("register")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gold)",fontWeight:700,fontSize:12}}>Create one →</button>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} style={{display:"flex",flexDirection:"column",gap:0}}>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:24}}>Create your account</h3>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
+                <div>
+                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name *</label>
+                  <div style={{position:"relative"}}>
+                    <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><UserIcon size={15} color="var(--text-muted)"/></span>
+                    <input required placeholder="Ravi Kumar" value={regForm.name} onChange={e=>setRegForm(p=>({...p,name:e.target.value}))} style={{paddingLeft:36}}/>
+                  </div>
+                </div>
+                <div>
+                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
+                  <div style={{position:"relative"}}>
+                    <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><PhoneIcon size={15} color="var(--text-muted)"/></span>
+                    <input placeholder="+91 98765 43210" value={regForm.phone} onChange={e=>setRegForm(p=>({...p,phone:e.target.value}))} style={{paddingLeft:36}}/>
+                  </div>
+                </div>
+              </div>
+              <div className="auth-input-group">
+                <label>Email address *</label>
+                <div style={{position:"relative"}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={16} color="var(--text-muted)"/></span>
+                  <input type="email" required placeholder="you@email.com" value={regForm.email} onChange={e=>setRegForm(p=>({...p,email:e.target.value}))} style={{paddingLeft:40}}/>
+                </div>
+              </div>
+              <div className="auth-input-group">
+                <label>City</label>
+                <div style={{position:"relative"}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MapPinIcon size={16} color="var(--text-muted)"/></span>
+                  <input placeholder="Bangalore" value={regForm.city} onChange={e=>setRegForm(p=>({...p,city:e.target.value}))} style={{paddingLeft:40}}/>
+                </div>
+              </div>
+              <div className="auth-input-group">
+                <label>Password *</label>
+                <div style={{position:"relative"}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={16} color="var(--text-muted)"/></span>
+                  <input type={showPwd?"text":"password"} required placeholder="Min. 6 characters" value={regForm.password} onChange={e=>setRegForm(p=>({...p,password:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
+                  <button type="button" onClick={()=>setShowPwd(o=>!o)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:0}}>
+                    {showPwd?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}
+                  </button>
+                </div>
+                {regForm.password && (
+                  <div style={{marginTop:8}}>
+                    <div style={{display:"flex",gap:4,marginBottom:4}}>
+                      {[0,1,2,3].map(i=>(
+                        <div key={i} className="strength-bar" style={{flex:1,background:i<strength?strengthColor[strength-1]:"var(--border-light)"}}/>
+                      ))}
+                    </div>
+                    <p style={{fontSize:11,color:strengthColor[strength-1]||"var(--text-muted)",fontWeight:600}}>{regForm.password ? (strengthLabel[strength-1]||"Very Weak") : ""}</p>
+                  </div>
+                )}
+              </div>
+              <div className="auth-input-group">
+                <label>Confirm Password *</label>
+                <div style={{position:"relative"}}>
+                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={16} color="var(--text-muted)"/></span>
+                  <input type={showConfirm?"text":"password"} required placeholder="Repeat password" value={regForm.confirm} onChange={e=>setRegForm(p=>({...p,confirm:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
+                  <button type="button" onClick={()=>setShowConfirm(o=>!o)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:0}}>
+                    {showConfirm?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}
+                  </button>
+                </div>
+                {regForm.confirm && regForm.password !== regForm.confirm && (
+                  <p style={{fontSize:11,color:"#FC8181",marginTop:4}}>Passwords do not match</p>
+                )}
+              </div>
+              <p style={{fontSize:11,color:"var(--text-muted)",marginBottom:16,lineHeight:1.5}}>By creating an account you agree to our <span style={{color:"var(--gold)",cursor:"pointer"}}>Terms of Service</span> and <span style={{color:"var(--gold)",cursor:"pointer"}}>Privacy Policy</span>.</p>
+              <button type="submit" className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:12}}>Create Account →</button>
+              <p style={{fontSize:12,color:"var(--text-muted)",textAlign:"center",marginTop:8}}>
+                Already have an account?{" "}
+                <button type="button" onClick={()=>setTab("login")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gold)",fontWeight:700,fontSize:12}}>Sign in →</button>
+              </p>
+            </form>
+          )}
+        </div>
+
+        {/* Trust badges */}
+        <div style={{display:"flex",justifyContent:"center",gap:24,marginTop:24,flexWrap:"wrap"}}>
+          {[{icon:"🔒",text:"SSL Secured"},{"icon":"🛡️",text:"Privacy Protected"},{icon:"📱",text:"WhatsApp Support"}].map((b,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"var(--text-muted)"}}>
+              <span>{b.icon}</span>{b.text}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ─── PROFILE PAGE ────────────────────────────────────────────────────────
+   ═══════════════════════════════════════════════════════════════════════════ */
+const ProfilePage = ({ setPage }) => {
+  const { user, logout, updateUser } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState({ name: user?.name||"", phone: user?.phone||"", city: user?.city||"" });
+  const [saved, setSaved] = useState(false);
+  const [notifications, setNotifications] = useState({ projectUpdates:true, promotions:false, newsletter:true, whatsapp:true });
+
+  if (!user) { setPage("Login"); return null; }
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    updateUser({ name: form.name, phone: form.phone, city: form.city });
+    setEditMode(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const savedProjects = data.projects.slice(0, 3); // simulated saved projects
+
+  const tabs = [
+    { id:"overview", label:"Overview",      icon:<UserIcon size={15}/> },
+    { id:"projects", label:"Saved Projects",icon:<HeartIcon size={15}/> },
+    { id:"security", label:"Security",      icon:<ShieldIcon size={15}/> },
+    { id:"notifs",   label:"Notifications", icon:<BellIcon size={15}/> },
+  ];
+
+  return (
+    <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F 0%,#0F0A20 30%,#1A0D3A 65%,#07050F 100%)"}}>
+      {/* Profile Hero */}
+      <section style={{position:"relative",padding:"64px 0 0",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0}}>
+          <img src={IMGS.teamHero} alt="profile bg" style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.15}}/>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(7,5,15,0.5),var(--navy-900))"}}/>
+        </div>
+        <div style={{position:"relative",maxWidth:1100,margin:"0 auto",padding:"0 24px 0",zIndex:2}}>
+          <div style={{display:"flex",alignItems:"flex-end",gap:24,paddingBottom:0}}>
+            {/* Avatar */}
+            <div style={{width:88,height:88,borderRadius:"50%",background:"linear-gradient(135deg,#7C3AED,var(--gold))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff",border:"4px solid var(--navy-900)",flexShrink:0}}>
+              {getInitials(user.name)}
+            </div>
+            <div style={{flex:1,paddingBottom:16}}>
+              <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(1.8rem,4vw,3rem)",fontWeight:800,lineHeight:1.05,marginBottom:4}}>{user.name}</h1>
+              <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
+                <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><MailIcon size={13}/>{user.email}</span>
+                {user.phone && <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><PhoneIcon size={13}/>{user.phone}</span>}
+                {user.city && <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><MapPinIcon size={13}/>{user.city}</span>}
+                {user.joinDate && <span style={{fontSize:12,color:"var(--text-muted)"}}>Member since {user.joinDate}</span>}
+              </div>
+            </div>
+            <div style={{paddingBottom:16,display:"flex",gap:10,flexShrink:0}}>
+              <button onClick={()=>setEditMode(true)} className="outline-btn" style={{padding:"8px 18px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
+                ✏️ Edit Profile
+              </button>
+              <button onClick={()=>{logout();setPage("Home");}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 18px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"rgba(220,38,38,0.12)",border:"1px solid rgba(220,38,38,0.3)",color:"#FC8181",cursor:"pointer"}}>
+                <LogOutIcon size={14} color="#FC8181"/> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <div style={{background:"rgba(7,5,15,0.85)",backdropFilter:"blur(12px)",borderBottom:"1px solid var(--border-light)",position:"sticky",top:64,zIndex:30}}>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px",display:"flex",gap:4}}>
+          {tabs.map(t=>(
+            <button key={t.id} onClick={()=>setActiveTab(t.id)}
+              style={{display:"flex",alignItems:"center",gap:7,padding:"16px 18px",fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",cursor:"pointer",border:"none",background:"transparent",
+                color:activeTab===t.id?"var(--gold)":"var(--text-muted)",
+                borderBottom:activeTab===t.id?"2px solid var(--gold)":"2px solid transparent",
+                transition:"all 0.2s"}}>
+              {t.icon}{t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 24px 80px"}}>
+
+        {/* ── Overview Tab ── */}
+        {activeTab==="overview" && (
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+            {/* Quick stats */}
+            <div style={{gridColumn:"1/-1",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>
+              {[
+                {label:"Saved Projects",value:"3",icon:"❤️"},
+                {label:"Quotes Requested",value:"1",icon:"📋"},
+                {label:"Projects Viewed",value:"6",icon:"👁️"},
+                {label:"Account Status",value:"Active",icon:"✅"},
+              ].map((s,i)=>(
+                <div key={i} style={{padding:"20px",borderRadius:12,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",textAlign:"center"}}>
+                  <p style={{fontSize:22,marginBottom:4}}>{s.icon}</p>
+                  <p style={{fontSize:24,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1}}>{s.value}</p>
+                  <p style={{fontSize:11,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:4}}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Profile info card */}
+            <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+                <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800}}>Personal Information</h3>
+                <button onClick={()=>setEditMode(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gold)",fontSize:12,fontWeight:700}}>Edit →</button>
+              </div>
+              {[
+                {label:"Full Name",value:user.name,icon:<UserIcon size={14}/>},
+                {label:"Email",value:user.email,icon:<MailIcon size={14}/>},
+                {label:"Phone",value:user.phone||"Not added",icon:<PhoneIcon size={14}/>},
+                {label:"City",value:user.city||"Not added",icon:<MapPinIcon size={14}/>},
+              ].map((f,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid var(--border)"}}>
+                  <span style={{color:"var(--gold)",flexShrink:0}}>{f.icon}</span>
+                  <div>
+                    <p style={{fontSize:10,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:1}}>{f.label}</p>
+                    <p style={{fontSize:14,color:f.value.includes("Not")?"var(--text-muted)":"var(--cream)",fontWeight:500}}>{f.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Recent activity */}
+            <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:20}}>Recent Activity</h3>
+              {[
+                {icon:"❤️",text:"Saved Whitefield Luxury Villas",time:"2 days ago"},
+                {icon:"👁️",text:"Viewed TechHub Office Complex",time:"3 days ago"},
+                {icon:"📋",text:"Requested a quote",time:"5 days ago"},
+                {icon:"✅",text:"Account created",time:user.joinDate||"Recently"},
+              ].map((a,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
+                  <span style={{fontSize:16,flexShrink:0}}>{a.icon}</span>
+                  <div>
+                    <p style={{fontSize:13,color:"var(--cream)",marginBottom:2}}>{a.text}</p>
+                    <p style={{fontSize:11,color:"var(--text-muted)"}}>{a.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div style={{gridColumn:"1/-1",padding:36,borderRadius:16,border:"2px solid var(--gold)",background:"linear-gradient(145deg,#14102E,#1C1444)",textAlign:"center"}}>
+              <p style={{fontSize:26,marginBottom:8}}>🏗️</p>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:8}}>Ready to Start a Project?</h3>
+              <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Get a personalized quote tailored to your requirements. Free consultation in 48 hours.</p>
+              <div style={{display:"flex",justifyContent:"center",gap:12}}>
+                <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Get Free Quote →</button>
+                <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:8,padding:"12px 28px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={13}/> WhatsApp</a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Saved Projects Tab ── */}
+        {activeTab==="projects" && (
+          <div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
+              <div>
+                <SectionLabel>Saved</SectionLabel>
+                <SectionHeading>Your Saved Projects</SectionHeading>
+              </div>
+              <button onClick={()=>setPage("Projects")} className="outline-btn" style={{padding:"10px 20px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Browse All Projects →</button>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20}}>
+              {savedProjects.map((p,i)=>(
+                <div key={i} className="card-hover" style={{borderRadius:16,border:"1px solid var(--border-light)",overflow:"hidden",cursor:"pointer"}} onClick={()=>setPage("Projects")}>
+                  <div style={{position:"relative",height:200}}>
+                    <img src={IMGS.projects[i]} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(7,5,15,.75),transparent 55%)"}}/>
+                    <div style={{position:"absolute",top:12,right:12,width:32,height:32,borderRadius:"50%",background:"rgba(220,38,38,.85)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <HeartIcon size={14} color="#fff"/>
+                    </div>
+                    <div style={{position:"absolute",top:12,left:12,display:"flex",alignItems:"center",gap:5,fontSize:11,fontWeight:700,textTransform:"uppercase",padding:"4px 10px",borderRadius:20,background:"rgba(232,160,48,.92)",color:"var(--navy-900)"}}>
+                      {p.type}
+                    </div>
+                  </div>
+                  <div style={{padding:20}}>
+                    <h4 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,marginBottom:4}}>{p.title}</h4>
+                    <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:12}}>{p.location} · {p.year} · {p.area}</p>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontSize:16,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif"}}>{p.value}</span>
+                      <span style={{fontSize:12,fontWeight:700,color:"var(--gold)"}}>View →</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {savedProjects.length === 0 && (
+              <div style={{textAlign:"center",padding:"80px 0"}}>
+                <p style={{fontSize:48,marginBottom:16}}>❤️</p>
+                <p style={{fontSize:18,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,marginBottom:8}}>No saved projects yet</p>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Browse our portfolio and save projects you love.</p>
+                <button onClick={()=>setPage("Projects")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Browse Projects →</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Security Tab ── */}
+        {activeTab==="security" && (
+          <div style={{maxWidth:560}}>
+            <div style={{marginBottom:32}}>
+              <SectionLabel>Account Security</SectionLabel>
+              <SectionHeading>Security Settings</SectionHeading>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(232,160,48,.12)",border:"1px solid rgba(232,160,48,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <LockIcon size={18} color="var(--gold)"/>
+                    </div>
+                    <div>
+                      <p style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>Password</p>
+                      <p style={{fontSize:12,color:"var(--text-muted)"}}>Last changed: recently</p>
+                    </div>
+                  </div>
+                  <button className="outline-btn" style={{padding:"6px 14px",borderRadius:6,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase"}}>Change</button>
+                </div>
+              </div>
+              <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(34,197,94,.1)",border:"1px solid rgba(34,197,94,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <MailIcon size={18} color="#22C55E"/>
+                    </div>
+                    <div>
+                      <p style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>Email Verified</p>
+                      <p style={{fontSize:12,color:"#22C55E",display:"flex",alignItems:"center",gap:4}}><CheckCircleIcon size={12} color="#22C55E"/> {user.email}</p>
+                    </div>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:"rgba(34,197,94,.12)",color:"#22C55E",border:"1px solid rgba(34,197,94,.3)"}}>Verified</span>
+                </div>
+              </div>
+              <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(232,160,48,.12)",border:"1px solid rgba(232,160,48,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <ShieldIcon size={18} color="var(--gold)"/>
+                    </div>
+                    <div>
+                      <p style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>Two-Factor Authentication</p>
+                      <p style={{fontSize:12,color:"var(--text-muted)"}}>Add an extra layer of security</p>
+                    </div>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:"rgba(232,160,48,.1)",color:"var(--gold)",border:"1px solid rgba(232,160,48,.25)"}}>Coming Soon</span>
+                </div>
+              </div>
+              <div style={{padding:20,borderRadius:14,border:"1px solid rgba(220,38,38,0.25)",background:"rgba(220,38,38,0.05)",marginTop:8}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#FC8181",marginBottom:6}}>Danger Zone</p>
+                <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:14}}>Permanently delete your account and all associated data.</p>
+                <button style={{padding:"8px 18px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"transparent",border:"1px solid rgba(220,38,38,0.4)",color:"#FC8181",cursor:"pointer"}}>Delete Account</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Notifications Tab ── */}
+        {activeTab==="notifs" && (
+          <div style={{maxWidth:560}}>
+            <div style={{marginBottom:32}}>
+              <SectionLabel>Preferences</SectionLabel>
+              <SectionHeading>Notification Settings</SectionHeading>
+            </div>
+            <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+              {[
+                {key:"projectUpdates",label:"Project Updates",desc:"Get notified when your project milestones are reached"},
+                {key:"promotions",label:"Offers & Promotions",desc:"Special pricing and seasonal construction offers"},
+                {key:"newsletter",label:"BuildCore Newsletter",desc:"Monthly insights on construction trends and tips"},
+                {key:"whatsapp",label:"WhatsApp Notifications",desc:"Receive updates directly on WhatsApp"},
+              ].map((n,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 0",borderBottom:i<3?"1px solid var(--border)":"none"}}>
+                  <div>
+                    <p style={{fontSize:14,fontWeight:700,color:"var(--cream)",marginBottom:3}}>{n.label}</p>
+                    <p style={{fontSize:12,color:"var(--text-muted)"}}>{n.desc}</p>
+                  </div>
+                  <button
+                    onClick={()=>setNotifications(p=>({...p,[n.key]:!p[n.key]}))}
+                    style={{width:44,height:24,borderRadius:12,border:"none",cursor:"pointer",transition:"all 0.25s",padding:2,flexShrink:0,
+                      background:notifications[n.key]?"var(--gold)":"var(--border-light)"}}>
+                    <div style={{width:20,height:20,borderRadius:"50%",background:"white",transition:"transform .25s",
+                      transform:notifications[n.key]?"translateX(20px)":"translateX(0)"}}/>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button className="gold-btn" style={{marginTop:20,padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Save Preferences →</button>
+          </div>
+        )}
+      </div>
+
+      {/* Edit Profile Modal */}
+      {editMode && (
+        <div className="modal-overlay" onClick={()=>setEditMode(false)}>
+          <div className="modal-box" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:36}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
+                <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800}}>Edit Profile</h3>
+                <button onClick={()=>setEditMode(false)} style={{background:"var(--navy-600)",border:"1px solid var(--border-light)",color:"var(--cream)",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14}}>✕</button>
+              </div>
+              {saved && (
+                <div style={{padding:"10px 16px",borderRadius:8,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,.3)",marginBottom:20,display:"flex",alignItems:"center",gap:8}}>
+                  <CheckCircleIcon size={16} color="#22C55E"/>
+                  <p style={{fontSize:13,color:"#22C55E",margin:0}}>Profile updated successfully!</p>
+                </div>
+              )}
+              <form onSubmit={handleSave} style={{display:"flex",flexDirection:"column",gap:16}}>
+                <div>
+                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name</label>
+                  <div style={{position:"relative"}}>
+                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><UserIcon size={16} color="var(--text-muted)"/></span>
+                    <input required value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{paddingLeft:40}}/>
+                  </div>
+                </div>
+                <div>
+                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email</label>
+                  <div style={{position:"relative"}}>
+                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={16} color="var(--text-muted)"/></span>
+                    <input type="email" value={user.email} disabled style={{paddingLeft:40,opacity:0.5,cursor:"not-allowed"}}/>
+                  </div>
+                  <p style={{fontSize:11,color:"var(--text-muted)",marginTop:4}}>Email cannot be changed</p>
+                </div>
+                <div>
+                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
+                  <div style={{position:"relative"}}>
+                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><PhoneIcon size={16} color="var(--text-muted)"/></span>
+                    <input placeholder="+91 98765 43210" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{paddingLeft:40}}/>
+                  </div>
+                </div>
+                <div>
+                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>City</label>
+                  <div style={{position:"relative"}}>
+                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MapPinIcon size={16} color="var(--text-muted)"/></span>
+                    <input placeholder="Bangalore" value={form.city} onChange={e=>setForm(p=>({...p,city:e.target.value}))} style={{paddingLeft:40}}/>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:12,marginTop:8}}>
+                  <button type="submit" className="gold-btn" style={{flex:1,padding:"13px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Save Changes →</button>
+                  <button type="button" onClick={()=>setEditMode(false)} className="outline-btn" style={{padding:"13px 20px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -941,44 +1622,6 @@ const TeamPage=()=>{
           })}
         </div>
       </section>
-      <section style={{background:"linear-gradient(145deg,#110D28,#1C1244,#0F0920)",padding:"80px 0"}}>
-        <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:64,alignItems:"center"}}>
-          <div>
-            <SectionLabel>Our Culture</SectionLabel>
-            <SectionHeading>A Culture of Excellence & Care</SectionHeading>
-            <p style={{fontSize:14,color:"var(--text-muted)",lineHeight:1.8,marginBottom:24}}>Exceptional buildings are built by exceptional people. We invest in our team's growth and wellbeing at every level.</p>
-            <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {[{icon:"📚",title:"Continuous Learning",desc:"Monthly training programs and site visits to global construction projects."},{icon:"🤝",title:"Collaborative Environment",desc:"Cross-functional teams that work together, never in silos."},{icon:"📈",title:"Merit-Based Growth",desc:"Promotions based purely on performance and measurable impact."},{icon:"❤️",title:"Employee Wellbeing",desc:"Health insurance, flexible leaves, and milestone celebrations."}].map((c,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"flex-start",gap:14,padding:"14px 16px",borderRadius:10,background:"linear-gradient(145deg,#140E2E,#1C1542)",border:"1px solid var(--border-light)"}}>
-                  <span style={{fontSize:20}}>{c.icon}</span>
-                  <div>
-                    <p style={{fontSize:14,fontWeight:700,color:"var(--cream)",marginBottom:3}}>{c.title}</p>
-                    <p style={{fontSize:12,color:"var(--text-muted)",lineHeight:1.55}}>{c.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-            {[{src:IMGS.cultureOffice,alt:"Office interior",offset:false},{src:IMGS.cultureConstruction,alt:"Construction teamwork",offset:true},{src:IMGS.cultureTeam,alt:"Team collaboration",offset:false},{src:IMGS.cultureAwards,alt:"Awards ceremony",offset:true}].map((img,i)=>(
-              <div key={i} style={{marginTop:img.offset?24:0,borderRadius:10,overflow:"hidden",border:"1px solid var(--border-light)"}}>
-                <img src={img.src} alt={img.alt} style={{width:"100%",height:200,objectFit:"cover",display:"block"}}/>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section style={{background:"linear-gradient(160deg,#07050F,#100826,#07050F)",padding:"80px 0"}}>
-        <div style={{maxWidth:700,margin:"0 auto",padding:"0 24px",textAlign:"center"}}>
-          <SectionLabel>Careers</SectionLabel>
-          <SectionHeading center>Join the BuildCore Family</SectionHeading>
-          <p style={{fontSize:14,color:"var(--text-muted)",maxWidth:420,margin:"0 auto 32px",lineHeight:1.7}}>We're always looking for talented architects, engineers, project managers, and creative minds.</p>
-          <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:14}}>
-            <a href="mailto:careers@buildcore.in" className="gold-btn" style={{display:"inline-block",padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",textDecoration:"none"}}>Send Your Resume →</a>
-            <a href={data.social.linkedin} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:8,padding:"12px 28px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#0A66C2",color:"#fff",textDecoration:"none"}}><LinkedInIcon size={14} color="#fff"/> LinkedIn Careers</a>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
@@ -1056,82 +1699,48 @@ const PricingPage=({setPage})=>(
 );
 
 /* ─── Project Detail Page ─────────────────────────────────────────────────── */
-// ── CHANGE 2: Per-project gallery.
-// gallery[0] = the project's card image (IMGS.projects[projectIndex])
-// gallery[1..3] = shared detail pool images
-// Clicking any thumbnail updates both the hero banner AND the active dot.
 const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
   const [imgIdx,setImgIdx]=useState(0);
   if(!project)return null;
-
-  // Build a 4-image gallery where index 0 is the specific project's card image
   const gallery = [
-    IMGS.projects[projectIndex],   // ← project-specific card image as first slide
+    IMGS.projects[projectIndex],
     IMGS.projectDetails[1],
     IMGS.projectDetails[2],
     IMGS.projectDetails[3],
   ];
-
   return(
     <div style={{paddingTop:64}}>
-      {/* Hero banner — uses gallery[imgIdx] so thumbnails drive the hero */}
       <section style={{position:"relative",height:480,overflow:"hidden"}}>
-        <img
-          key={imgIdx}
-          src={gallery[imgIdx]}
-          alt={project.title}
-          style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"opacity .5s"}}
-        />
+        <img key={imgIdx} src={gallery[imgIdx]} alt={project.title} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"opacity .5s"}}/>
         <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(7,5,15,.75) 0%,rgba(24,11,54,.5) 100%)"}}/>
-
-        {/* Dot indicators — sync'd to imgIdx */}
         <div style={{position:"absolute",bottom:24,left:"50%",transform:"translateX(-50%)",display:"flex",gap:10,zIndex:5}}>
           {gallery.map((_,i)=>(
-            <button key={i} onClick={()=>setImgIdx(i)}
-              style={{width:i===imgIdx?28:10,height:10,borderRadius:5,background:i===imgIdx?"var(--gold)":"rgba(255,255,255,.5)",border:"none",cursor:"pointer",transition:"all .3s"}}/>
+            <button key={i} onClick={()=>setImgIdx(i)} style={{width:i===imgIdx?28:10,height:10,borderRadius:5,background:i===imgIdx?"var(--gold)":"rgba(255,255,255,.5)",border:"none",cursor:"pointer",transition:"all .3s"}}/>
           ))}
         </div>
-
-        {/* Prev / Next arrows */}
-        <button onClick={()=>setImgIdx(s=>(s-1+gallery.length)%gallery.length)}
-          style={{position:"absolute",left:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer",backdropFilter:"blur(6px)"}}>‹</button>
-        <button onClick={()=>setImgIdx(s=>(s+1)%gallery.length)}
-          style={{position:"absolute",right:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer",backdropFilter:"blur(6px)"}}>›</button>
-
-        {/* Type badge */}
+        <button onClick={()=>setImgIdx(s=>(s-1+gallery.length)%gallery.length)} style={{position:"absolute",left:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer",backdropFilter:"blur(6px)"}}>‹</button>
+        <button onClick={()=>setImgIdx(s=>(s+1)%gallery.length)} style={{position:"absolute",right:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer",backdropFilter:"blur(6px)"}}>›</button>
         <div style={{position:"absolute",top:20,left:24,zIndex:5,display:"flex",alignItems:"center",gap:6,background:"rgba(232,160,48,.92)",color:"var(--navy-900)",fontSize:11,fontWeight:700,padding:"5px 14px",borderRadius:20,textTransform:"uppercase"}}>
           {project.type==="Residential"?<HomeIcon2 size={13} color="var(--navy-900)"/>:<BuildingIcon size={13} color="var(--navy-900)"/>}
           {project.type}
         </div>
-
-        {/* Back button */}
         <button onClick={onBack} className="back-btn" style={{position:"absolute",top:20,right:24,zIndex:5}}>
           <ArrowLeftIcon size={15}/> Back to Projects
         </button>
-
-        {/* Title overlay */}
         <div style={{position:"absolute",bottom:60,left:0,right:0,padding:"0 40px",zIndex:5}}>
           <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:800,lineHeight:1.04,marginBottom:8}}>{project.title}</h1>
           <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-            <span style={{fontSize:13,color:"rgba(240,238,255,.75)",display:"flex",alignItems:"center",gap:5}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(240,238,255,.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              {project.location}
-            </span>
+            <span style={{fontSize:13,color:"rgba(240,238,255,.75)"}}>{project.location}</span>
             <span style={{fontSize:13,color:"rgba(240,238,255,.75)"}}>· {project.year}</span>
             <span style={{fontSize:13,color:"rgba(240,238,255,.75)"}}>· {project.area}</span>
           </div>
         </div>
       </section>
-
-      {/* Main content */}
       <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)",padding:"64px 0 96px"}}>
         <div style={{maxWidth:1280,margin:"0 auto",padding:"0 40px",display:"grid",gridTemplateColumns:"1fr 380px",gap:48,alignItems:"start"}}>
-
-          {/* Left */}
           <div>
             <SectionLabel>Project Overview</SectionLabel>
             <p style={{fontSize:15,color:"var(--text-soft)",lineHeight:1.85,marginBottom:32}}>{project.longDesc || project.description}</p>
-
             <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:16}}>Key Highlights</h3>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:40}}>
               {project.highlights.map((h,i)=>(
@@ -1141,36 +1750,14 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
                 </div>
               ))}
             </div>
-
-            {/* ── CHANGE 2 (gallery strip) ────────────────────────────────────
-                Thumbnails now use gallery[] — index 0 is the project card image.
-                Clicking a thumb sets imgIdx which drives the hero above.        */}
             <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:16}}>Project Gallery</h3>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:40}}>
               {gallery.map((src,i)=>(
-                <div
-                  key={i}
-                  className="gallery-thumb"
-                  onClick={()=>setImgIdx(i)}
-                  style={{
-                    border:i===imgIdx?"2px solid var(--gold)":"2px solid transparent",
-                    borderRadius:10,overflow:"hidden",cursor:"pointer",transition:"border .2s, transform .2s",
-                  }}
-                >
-                  <img
-                    src={src}
-                    alt={`gallery-${i}`}
-                    style={{width:"100%",height:84,objectFit:"cover",display:"block",transition:"transform .3s"}}
-                  />
-                  {/* Active overlay badge */}
-                  {i===imgIdx&&(
-                    <div style={{position:"absolute",inset:0,border:"2px solid var(--gold)",borderRadius:10,pointerEvents:"none"}}/>
-                  )}
+                <div key={i} className="gallery-thumb" onClick={()=>setImgIdx(i)} style={{border:i===imgIdx?"2px solid var(--gold)":"2px solid transparent",borderRadius:10,overflow:"hidden",cursor:"pointer"}}>
+                  <img src={src} alt={`gallery-${i}`} style={{width:"100%",height:84,objectFit:"cover",display:"block"}}/>
                 </div>
               ))}
             </div>
-
-            {/* Client quote */}
             <div style={{padding:32,borderRadius:16,border:"2px solid var(--gold)",background:"linear-gradient(145deg,#14102E,#1C1444)"}}>
               <div style={{fontSize:32,color:"var(--gold)",marginBottom:12}}>"</div>
               <p style={{fontSize:16,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1.65,marginBottom:20,fontStyle:"italic"}}>
@@ -1185,19 +1772,10 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
               </div>
             </div>
           </div>
-
-          {/* Right sidebar */}
           <div style={{position:"sticky",top:80}}>
             <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",marginBottom:20}}>
               <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:20}}>Project Details</h3>
-              {[
-                {label:"Client",val:project.client},
-                {label:"Location",val:project.location},
-                {label:"Project Type",val:project.type},
-                {label:"Total Area",val:project.area},
-                {label:"Duration",val:project.duration},
-                {label:"Completed",val:project.year},
-              ].map((d,i)=>(
+              {[{label:"Client",val:project.client},{label:"Location",val:project.location},{label:"Project Type",val:project.type},{label:"Total Area",val:project.area},{label:"Duration",val:project.duration},{label:"Completed",val:project.year}].map((d,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"12px 0",borderBottom:"1px solid var(--border)",gap:12}}>
                   <span style={{fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,flexShrink:0}}>{d.label}</span>
                   <span style={{fontSize:13,color:"var(--cream)",fontWeight:600,textAlign:"right"}}>{d.val}</span>
@@ -1209,47 +1787,10 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              <button onClick={()=>setPage("Contact")} className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>
-                Start a Similar Project →
-              </button>
-              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I%20saw%20your%20${encodeURIComponent(project.title)}%20project%20and%20I%27d%20like%20a%20quote.`}
-                target="_blank" rel="noopener noreferrer"
-                style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"14px",borderRadius:8,fontSize:13,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}>
-                <WhatsAppSVG size={15}/> Enquire on WhatsApp
-              </a>
-              <button onClick={onBack} className="outline-btn" style={{width:"100%",padding:"12px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                <ArrowLeftIcon size={14}/> All Projects
-              </button>
+              <button onClick={()=>setPage("Contact")} className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>Start a Similar Project →</button>
+              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I%20saw%20your%20${encodeURIComponent(project.title)}%20project%20and%20I%27d%20like%20a%20quote.`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"14px",borderRadius:8,fontSize:13,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={15}/> Enquire on WhatsApp</a>
+              <button onClick={onBack} className="outline-btn" style={{width:"100%",padding:"12px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><ArrowLeftIcon size={14}/> All Projects</button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Related projects */}
-      <section style={{background:"linear-gradient(145deg,#110D28,#1C1244,#0F0920)",padding:"64px 0"}}>
-        <div style={{maxWidth:1280,margin:"0 auto",padding:"0 40px"}}>
-          <SectionLabel>More Projects</SectionLabel>
-          <SectionHeading>You May Also Like</SectionHeading>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,marginTop:32}}>
-            {data.projects.filter((_,i)=>i!==projectIndex).slice(0,3).map((p,i)=>{
-              const origIdx=data.projects.indexOf(p);
-              return(
-                <div key={i} className="card-hover" style={{borderRadius:14,border:"1px solid var(--border-light)",overflow:"hidden",cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
-                  <div style={{position:"relative",height:180}}>
-                    <img src={IMGS.projects[origIdx]} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(7,5,15,.65),transparent 55%)"}}/>
-                    <div style={{position:"absolute",top:10,right:10,display:"flex",alignItems:"center",gap:5,fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,background:"rgba(232,160,48,.9)",color:"var(--navy-900)",textTransform:"uppercase"}}>
-                      {p.type==="Residential"?<HomeIcon2 size={11} color="var(--navy-900)"/>:<BuildingIcon size={11} color="var(--navy-900)"/>}
-                      {p.type}
-                    </div>
-                  </div>
-                  <div style={{padding:20}}>
-                    <h4 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,marginBottom:4}}>{p.title}</h4>
-                    <p style={{fontSize:12,color:"var(--text-muted)"}}>{p.location} · {p.year}</p>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -1263,16 +1804,9 @@ const ProjectsPage=({setPage})=>{
   const [selectedProject,setSelectedProject]=useState(null);
   const [selectedIndex,setSelectedIndex]=useState(null);
   const filtered=filter==="All"?data.projects:data.projects.filter(p=>p.type===filter);
-
   if(selectedProject){
-    return <ProjectDetailPage
-      project={selectedProject}
-      projectIndex={selectedIndex}
-      onBack={()=>{ setSelectedProject(null); setSelectedIndex(null); }}
-      setPage={setPage}
-    />;
+    return <ProjectDetailPage project={selectedProject} projectIndex={selectedIndex} onBack={()=>{setSelectedProject(null);setSelectedIndex(null);}} setPage={setPage}/>;
   }
-
   return(
     <div style={{paddingTop:64}}>
       <section style={{position:"relative",padding:"112px 0",overflow:"hidden"}}>
@@ -1281,42 +1815,21 @@ const ProjectsPage=({setPage})=>{
         <div style={{position:"relative",maxWidth:1280,margin:"0 auto",padding:"0 24px",textAlign:"center",zIndex:2}}>
           <SectionLabel>Our Portfolio</SectionLabel>
           <SectionHeading center>500+ Projects. Countless Stories.</SectionHeading>
-          <p style={{fontSize:14,color:"rgba(240,238,255,.75)",maxWidth:480,margin:"0 auto",lineHeight:1.7}}>Explore our latest completed projects across residential and commercial categories.</p>
         </div>
       </section>
       <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)",padding:"96px 0"}}>
         <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px"}}>
-          <div style={{marginBottom:48}}>
-            <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:28}}>
-              {["All","Residential","Commercial"].map(f=>(
-                <button key={f} className={`tab-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,maxWidth:480,margin:"0 auto"}}>
-              {[
-                {type:"Residential",icon:<HomeIcon2 size={28} color={filter==="Residential"?"var(--navy-900)":"var(--gold)"}/>,count:data.projects.filter(p=>p.type==="Residential").length},
-                {type:"Commercial", icon:<BuildingIcon size={28} color={filter==="Commercial"?"var(--navy-900)":"var(--gold)"}/>,count:data.projects.filter(p=>p.type==="Commercial").length},
-              ].map((t,i)=>(
-                <button key={i} onClick={()=>setFilter(f=>f===t.type?"All":t.type)}
-                  style={{display:"flex",alignItems:"center",gap:14,padding:"16px 20px",borderRadius:12,
-                    border:filter===t.type?"none":"1px solid var(--border-light)",
-                    background:filter===t.type?"linear-gradient(135deg,#C87820,#F5C060)":"linear-gradient(145deg,#140E2E,#1C1542)",
-                    cursor:"pointer",transition:"all .25s",textAlign:"left"}}>
-                  <div style={{width:52,height:52,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:filter===t.type?"rgba(7,5,15,.15)":"rgba(232,160,48,.12)",flexShrink:0}}>{t.icon}</div>
-                  <div>
-                    <p style={{fontSize:15,fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",color:filter===t.type?"var(--navy-900)":"var(--cream)",marginBottom:2}}>{t.type}</p>
-                    <p style={{fontSize:11,color:filter===t.type?"rgba(7,5,15,.7)":"var(--text-muted)",fontWeight:600}}>{t.count} Projects</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:40}}>
+            {["All","Residential","Commercial"].map(f=>(
+              <button key={f} className={`tab-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
+            ))}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20,marginBottom:80}}>
             {filtered.map((p,i)=>{
               const origIdx=data.projects.indexOf(p);
               return(
                 <div key={i} className="card-hover" style={{borderRadius:16,border:"1px solid var(--border-light)",overflow:"hidden",cursor:"pointer"}}
-                  onClick={()=>{ setSelectedProject(p); setSelectedIndex(origIdx); window.scrollTo({top:0,behavior:"smooth"}); }}>
+                  onClick={()=>{setSelectedProject(p);setSelectedIndex(origIdx);window.scrollTo({top:0,behavior:"smooth"});}}>
                   <div style={{position:"relative",height:220}}>
                     <img src={IMGS.projects[origIdx]} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                     <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(7,5,15,.75) 0%,transparent 50%)"}}/>
@@ -1324,25 +1837,16 @@ const ProjectsPage=({setPage})=>{
                       {p.type==="Residential"?<HomeIcon2 size={12} color="var(--navy-900)"/>:<BuildingIcon size={12} color="var(--navy-900)"/>}
                       {p.type}
                     </div>
-                    <div style={{position:"absolute",bottom:12,left:16,display:"flex",alignItems:"center",gap:5,fontSize:12,color:"rgba(240,238,255,.85)"}}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(240,238,255,.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      {p.location}
-                    </div>
                   </div>
                   <div style={{padding:24}}>
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                       <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,fontWeight:800}}>{p.title}</h3>
                       <span style={{fontSize:11,color:"var(--text-muted)"}}>{p.year}</span>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"var(--text-muted)",marginBottom:12}}>
-                      {p.area}<span style={{color:"var(--border-light)"}}>·</span>{p.location}
-                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"var(--text-muted)",marginBottom:12}}>{p.area}<span>·</span>{p.location}</div>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <span style={{fontSize:16,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif"}}>{p.value}</span>
-                      <span style={{fontSize:12,fontWeight:700,color:"var(--gold)",display:"flex",alignItems:"center",gap:4}}>
-                        View Details
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                      </span>
+                      <span style={{fontSize:12,fontWeight:700,color:"var(--gold)"}}>View Details →</span>
                     </div>
                   </div>
                 </div>
@@ -1507,7 +2011,7 @@ const ContactPage=()=>{
 };
 
 /* ─── App Root ────────────────────────────────────────────────────────────── */
-export default function App(){
+function AppInner() {
   const [page,setPage]=useState("Home");
   const [scrolled,setScrolled]=useState(false);
   const [showSplash,setShowSplash]=useState(true);
@@ -1529,16 +2033,18 @@ export default function App(){
   const renderPage=()=>{
     const p={setPage};
     switch(page){
-      case"Home":           return <HomePage {...p}/>;
-      case"About":          return <AboutPage {...p}/>;
-      case"Services":       return <ServicesPage {...p}/>;
-      case"Why Us":         return <WhyUsPage {...p}/>;
-      case"Team":           return <TeamPage/>;
-      case"Pricing":        return <PricingPage {...p}/>;
-      case"Projects":       return <ProjectsPage {...p}/>;
-      case"FAQ":            return <FAQPage {...p}/>;
-      case"Contact":        return <ContactPage/>;
-      default:              return <HomePage {...p}/>;
+      case"Home":    return <HomePage {...p}/>;
+      case"About":   return <AboutPage {...p}/>;
+      case"Services":return <ServicesPage {...p}/>;
+      case"Why Us":  return <WhyUsPage {...p}/>;
+      case"Team":    return <TeamPage/>;
+      case"Pricing": return <PricingPage {...p}/>;
+      case"Projects":return <ProjectsPage {...p}/>;
+      case"FAQ":     return <FAQPage {...p}/>;
+      case"Contact": return <ContactPage/>;
+      case"Login":   return <LoginPage {...p}/>;
+      case"Profile": return <ProfilePage {...p}/>;
+      default:       return <HomePage {...p}/>;
     }
   };
 
@@ -1551,5 +2057,13 @@ export default function App(){
       <Footer setPage={setPage}/>
       <WhatsAppFloat/>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }
