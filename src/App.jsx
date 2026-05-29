@@ -1,45 +1,8 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useRef } from "react";
 
 if (typeof document !== "undefined") {
   document.title = "BuildCore Constructions | Premium Construction Services";
 }
-
-/* ─── Auth Context ────────────────────────────────────────────────────────── */
-const AuthContext = createContext(null);
-
-const useAuth = () => useContext(AuthContext);
-
-const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem("buildcore_user");
-      return stored ? JSON.parse(stored) : null;
-    } catch { return null; }
-  });
-
-  const login = (userData) => {
-    const u = { ...userData, loginTime: new Date().toISOString() };
-    setUser(u);
-    try { localStorage.setItem("buildcore_user", JSON.stringify(u)); } catch {}
-  };
-
-  const logout = () => {
-    setUser(null);
-    try { localStorage.removeItem("buildcore_user"); } catch {}
-  };
-
-  const updateUser = (updates) => {
-    const u = { ...user, ...updates };
-    setUser(u);
-    try { localStorage.setItem("buildcore_user", JSON.stringify(u)); } catch {}
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
 
 const FontLoader = () => (
   <style>{`
@@ -85,6 +48,8 @@ const FontLoader = () => (
     @keyframes shimmer { 0%,100%{opacity:.6} 50%{opacity:1} }
     @keyframes splashFade { 0%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
     @keyframes splashLogo { 0%{opacity:0;transform:translateY(20px)} 30%{opacity:1;transform:translateY(0)} 80%{opacity:1} 100%{opacity:0} }
+    @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(16px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     .fade-up { animation: fadeUp 0.7s ease forwards; }
     .slide-in { animation: slideIn 0.7s ease forwards; }
     .star { color: var(--gold); }
@@ -119,8 +84,9 @@ const FontLoader = () => (
     .feed-item:hover img { transform: scale(1.08); }
     .feed-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(90,20,180,0.75) 0%, transparent 55%); opacity: 0; transition: opacity 0.3s; display: flex; align-items: flex-end; padding: 10px; }
     .feed-item:hover .feed-overlay { opacity: 1; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(7,5,15,0.93); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
-    .modal-box { background: var(--grad-card); border: 1px solid var(--border-light); border-radius: 18px; max-width: 860px; width: 100%; max-height: 92vh; overflow-y: auto; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(7,5,15,0.93); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); animation: fadeIn .2s ease; }
+    .modal-box { background: var(--grad-card); border: 1px solid var(--border-light); border-radius: 18px; max-width: 860px; width: 100%; max-height: 92vh; overflow-y: auto; animation: modalIn .3s ease; }
+    .auth-modal-box { background: linear-gradient(145deg,#0F0A1E,#180D38); border: 1px solid var(--border-light); border-radius: 20px; width: 100%; max-width: 440px; animation: modalIn .3s ease; overflow: hidden; }
     .tab-btn { padding: 8px 20px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
     .tab-btn.active { background: linear-gradient(135deg, #7C3AED, var(--gold)); color: #fff; border: none; }
     .tab-btn:not(.active) { background: transparent; color: var(--text-muted); border: 1px solid var(--border-light); }
@@ -136,11 +102,6 @@ const FontLoader = () => (
     .icon-box-sm { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(232,160,48,0.12), rgba(155,93,229,0.12)); border: 1px solid rgba(232,160,48,0.2); flex-shrink: 0; }
     .process-icon-wrap { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #C87820, #F5C060); margin: 0 auto 16px; box-shadow: 0 8px 24px rgba(232,160,48,0.35); }
     .why-icon-wrap { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(232,160,48,0.18), rgba(155,93,229,0.18)); border: 1px solid rgba(232,160,48,0.3); margin-bottom: 16px; }
-    .blog-category-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; }
-    .cat-design { background: rgba(155,93,229,0.25); color: #B794F4; border: 1px solid rgba(155,93,229,0.4); }
-    .cat-guide { background: rgba(232,160,48,0.18); color: #F0B840; border: 1px solid rgba(232,160,48,0.35); }
-    .cat-finance { background: rgba(72,199,142,0.15); color: #48C78E; border: 1px solid rgba(72,199,142,0.3); }
-    .cat-sustainability { background: rgba(72,199,142,0.15); color: #48C78E; border: 1px solid rgba(72,199,142,0.3); }
     .splash-screen { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #07050F 0%, #1A0D3A 60%, #07050F 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; animation: splashFade 2.8s ease forwards; pointer-events: none; }
     .splash-logo { animation: splashLogo 2.8s ease forwards; text-align: center; }
     .splash-bar { width: 120px; height: 3px; border-radius: 2px; margin-top: 24px; background: linear-gradient(90deg, #9B5DE5, var(--gold)); animation: splashLogo 2.8s ease forwards; }
@@ -150,32 +111,49 @@ const FontLoader = () => (
     .gallery-thumb:hover { transform: scale(1.04); }
     .gallery-thumb img { width: 100%; height: 80px; object-fit: cover; display: block; transition: transform .3s; }
     .gallery-thumb:hover img { transform: scale(1.08); }
-    /* Auth styles */
-    .auth-input-group { margin-bottom: 16px; }
-    .auth-input-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
-    .auth-tab { padding: 10px 24px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border-light); background: transparent; color: var(--text-muted); }
-    .auth-tab.active { background: linear-gradient(135deg, #7C3AED, var(--gold)); color: #fff; border: none; }
-    .auth-tab:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
-    .profile-tab { padding: 10px 20px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; background: transparent; color: var(--text-muted); display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
-    .profile-tab.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,160,48,0.15)); color: var(--gold); border-color: rgba(232,160,48,0.25); }
-    .profile-tab:hover:not(.active) { color: var(--cream); background: rgba(255,255,255,0.04); }
-    /* User avatar in navbar */
-    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; border: 2px solid var(--gold); flex-shrink: 0; }
-    .user-dropdown { position: absolute; top: 50px; right: 0; background: var(--navy-800); border: 1px solid var(--border-light); border-radius: 12px; min-width: 180px; box-shadow: 0 16px 48px rgba(0,0,0,.6); z-index: 100; overflow: hidden; }
-    .user-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: var(--cream); cursor: pointer; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
-    .user-dropdown-item:hover { background: rgba(232,160,48,0.1); color: var(--gold); }
-    .user-dropdown-item.danger:hover { background: rgba(220,38,38,0.12); color: #FC8181; }
-    .strength-bar { height: 4px; border-radius: 2px; transition: all 0.3s; }
+    .auth-tab { padding: 10px 24px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all .2s; border: none; background: transparent; flex: 1; }
+    .auth-tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+    .auth-tab:not(.active) { color: var(--text-muted); border-bottom: 2px solid transparent; }
+    .auth-tab:not(.active):hover { color: var(--cream); }
+    .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: linear-gradient(145deg,#0F0A1E,#180D38); border: 1px solid var(--border-light); border-radius: 14px; min-width: 220px; z-index: 200; animation: modalIn .2s ease; box-shadow: 0 20px 48px rgba(0,0,0,.6); overflow: hidden; }
+    .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 13px; color: var(--text-soft); cursor: pointer; transition: all .18s; border: none; background: transparent; width: 100%; text-align: left; }
+    .dropdown-item:hover { background: var(--gold-dim); color: var(--cream); }
+    .dropdown-item.danger:hover { background: rgba(239,68,68,.12); color: #EF4444; }
+    .profile-stat-card { padding: 20px 24px; border-radius: 14px; background: var(--grad-card); border: 1px solid var(--border-light); text-align: center; transition: all .25s; }
+    .profile-stat-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+    .profile-activity-row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 10px; background: linear-gradient(145deg,#140E2E,#1A1240); border: 1px solid var(--border-light); transition: all .2s; cursor: default; }
+    .profile-activity-row:hover { border-color: var(--gold); }
+    .edit-btn { padding: 8px 20px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: all .2s; border: 1.5px solid var(--border-light); background: transparent; color: var(--text-muted); }
+    .edit-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .edit-btn.active { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+    .booking-step-card { border-radius: 16px; border: 1px solid var(--border-light); background: var(--grad-card); padding: 28px; transition: all .25s; cursor: pointer; }
+    .booking-step-card:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 16px 40px rgba(232,160,48,.15); }
+    .booking-step-card.selected { border-color: var(--gold); background: linear-gradient(145deg, #1C1644, #261A58); box-shadow: 0 0 0 1px var(--gold), 0 16px 40px rgba(232,160,48,.18); }
+    .slot-btn { padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: var(--navy-700); color: var(--cream); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; text-align: center; }
+    .slot-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .slot-btn.selected { border-color: var(--gold); background: rgba(232,160,48,.15); color: var(--gold); }
+    .slot-btn.disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+    .stepper-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; transition: all .3s; flex-shrink: 0; }
+    .stepper-dot.done { background: linear-gradient(135deg,#C87820,#F5C060); color: var(--navy-900); }
+    .stepper-dot.active { background: linear-gradient(135deg,#7C3AED,var(--gold)); color: #fff; box-shadow: 0 0 0 4px rgba(232,160,48,.2); }
+    .stepper-dot.pending { background: var(--navy-600); color: var(--text-muted); border: 1px solid var(--border-light); }
+    .stepper-line { flex: 1; height: 2px; background: var(--border-light); transition: background .3s; }
+    .stepper-line.done { background: linear-gradient(90deg,#C87820,#F5C060); }
+    .cal-day { width: 100%; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; border: 1px solid transparent; }
+    .cal-day:hover:not(.cal-disabled):not(.cal-selected) { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+    .cal-day.cal-selected { background: linear-gradient(135deg,#C87820,#F5C060); color: var(--navy-900); border-color: transparent; font-weight: 800; }
+    .cal-day.cal-disabled { opacity: .3; cursor: not-allowed; }
+    .cal-day.cal-today { border-color: rgba(232,160,48,.4); color: var(--gold); }
+    .summary-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 16px; }
+    .summary-row:last-child { border-bottom: none; }
   `}</style>
 );
 
-/* ─── SVG Icon Components ─────────────────────────────────────────────────── */
 const InstagramIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill={color} stroke="none"/></svg>;
 const FacebookIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>;
 const LinkedInIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>;
 const YouTubeIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color}><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#1A1A1A"/></svg>;
 const WhatsAppSVG=({size=16})=><svg width={size} height={size} viewBox="0 0 32 32" fill="currentColor"><path d="M16 2C8.268 2 2 8.268 2 16c0 2.49.648 4.83 1.783 6.863L2 30l7.343-1.76A13.94 13.94 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm6.35 18.912c-.347-.174-2.057-1.015-2.376-1.13-.32-.117-.553-.174-.786.174-.233.348-.903 1.13-1.107 1.363-.204.232-.407.26-.754.087-.347-.174-1.465-.54-2.79-1.72-1.03-.918-1.726-2.052-1.93-2.4-.203-.347-.022-.534.153-.707.157-.155.347-.405.52-.607.175-.203.233-.348.349-.58.116-.233.058-.437-.03-.61-.087-.174-.786-1.893-1.077-2.594-.284-.681-.572-.588-.786-.599l-.668-.012c-.233 0-.61.087-.93.435-.32.347-1.223 1.194-1.223 2.913s1.252 3.38 1.427 3.613c.174.232 2.464 3.763 5.97 5.277.834.36 1.485.575 1.993.736.837.267 1.6.23 2.202.14.672-.101 2.057-.842 2.348-1.655.29-.813.29-1.51.203-1.656-.086-.145-.32-.232-.668-.406z"/></svg>;
-
 const HardHatIcon=({size=24,color="var(--gold)"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20"/><path d="M12 4a8 8 0 0 1 8 8H4a8 8 0 0 1 8-8z"/><path d="M12 4v4M4 12v2a8 8 0 0 0 16 0v-2"/></svg>;
 const ClockIcon=({size=24,color="var(--gold)"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 const BrickIcon=({size=24,color="var(--gold)"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="5" rx="1"/><rect x="2" y="12" width="9" height="5" rx="1"/><rect x="13" y="12" width="9" height="5" rx="1"/><line x1="7" y1="7" x2="7" y2="12"/><line x1="17" y1="7" x2="17" y2="12"/></svg>;
@@ -195,20 +173,23 @@ const SmartphoneIcon=({size=24,color="var(--gold)"})=><svg width={size} height={
 const HomeIcon2=({size=20,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
 const BuildingIcon=({size=20,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22V12h6v10"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></svg>;
 const ArrowLeftIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>;
-const UserIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-const LogOutIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
-const LockIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
-const MailIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
-const PhoneIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
-const MapPinIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
-const HeartIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
-const EyeIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
-const EyeOffIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
-const CheckCircleIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
-const BellIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
-const ShieldIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const UserIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+const LogOutIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const LockIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const MailIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+const PhoneIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.37 2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.63a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
+const EditIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+const HeartIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+const FileIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
+const CheckCircleIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const BellIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+const MapPinIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+const EyeIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+const EyeOffIcon=({size=16,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+const CheckIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const ChevronLeftIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
+const ChevronRightIcon=({size=18,color="currentColor"})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
-/* ─── Images ─────────────────────────────────────────────────────────────── */
 const IMGS = {
   heroSlides: [
     "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1600&q=80",
@@ -267,10 +248,11 @@ const IMGS = {
   pricingBg:  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=80",
   whyUsBg:    "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1400&q=80",
   teamHero:   "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1400&q=80",
-  cultureOffice:       "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
-  cultureConstruction: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
-  cultureTeam:         "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
-  cultureAwards:       "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800&q=80",
+  bookingBg:  "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1400&q=80",
+  cultureOffice:"https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
+  cultureConstruction:"https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+  cultureTeam:"https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
+  cultureAwards:"https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800&q=80",
   feed: [
     "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&q=80",
     "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80",
@@ -281,8 +263,8 @@ const IMGS = {
   ],
 };
 
-/* ─── Data ────────────────────────────────────────────────────────────────── */
 const data = {
+  // ── Navbar: "Booking" removed from links ──
   navbar: { logo:"BuildCore", links:["Home","About","Services","Why Us","Team","Pricing","Projects","FAQ","Contact"] },
   home: {
     stats:[
@@ -367,11 +349,11 @@ const data = {
   ],
   projects:[
     {title:"Whitefield Luxury Villas",type:"Residential",area:"4,200 sq ft",year:"2024",location:"Bangalore",client:"Private Homeowner",duration:"14 months",value:"₹2.8 Cr",description:"A stunning cluster of 6 premium villas featuring smart home automation, landscaped gardens, and a community pool.",highlights:["Smart Home Integration","Rainwater Harvesting","Community Pool","Landscaped Gardens"],longDesc:"The Whitefield Luxury Villas project is a landmark residential development in Bangalore's thriving eastern corridor. Spread across 1.2 acres, the cluster of six independent villas was designed to offer an unparalleled lifestyle experience combining modern architecture with thoughtful sustainability features. Each villa features 4 bedrooms, a private terrace, and a smart home system that controls lighting, security, and climate. The project was completed 12 days ahead of schedule and earned a Green Building certification."},
-    {title:"TechHub Office Complex",type:"Commercial",area:"28,000 sq ft",year:"2024",location:"Hyderabad",client:"TechHub Ventures Pvt. Ltd.",duration:"18 months",value:"₹14.5 Cr",description:"A cutting-edge 7-floor commercial complex with open-plan offices, conference suites, a rooftop café, and LEED Gold certification.",highlights:["LEED Gold Certified","Rooftop Café","EV Charging Bays","Seismic-Safe Structure"],longDesc:"TechHub Office Complex redefines the modern workplace in Hyderabad's HITEC City. The 7-storey building features column-free open-plan floors, state-of-the-art conference suites, and a rooftop café with panoramic city views. BuildCore engineered the structure to exceed seismic safety standards while achieving LEED Gold certification — making it one of the most sustainable commercial buildings in the city."},
-    {title:"Coastal Retreat",type:"Residential",area:"6,800 sq ft",year:"2023",location:"Goa",client:"Mr. Sameer D'Souza",duration:"16 months",value:"₹4.2 Cr",description:"An oceanfront private villa blending contemporary architecture with natural stone and wood.",highlights:["Oceanfront Location","Private Pool Deck","Natural Stone Finish","Outdoor Cinema"],longDesc:"Perched on a cliff overlooking the Arabian Sea, Coastal Retreat is BuildCore's most visually striking residential project. The design brief called for a seamless blend of indoor and outdoor living, achieved through floor-to-ceiling glazing, natural stone walls, and teak wood decking. The private pool deck doubles as an outdoor cinema at night."},
-    {title:"Grand Retail Mall",type:"Commercial",area:"85,000 sq ft",year:"2023",location:"Chennai",client:"Grand Retail Corp.",duration:"28 months",value:"₹48 Cr",description:"A landmark multi-level retail destination with 120 stores, 2 food courts, an IMAX theatre.",highlights:["120 Retail Stores","IMAX Theatre","600 Parking Slots","Central HVAC System"],longDesc:"Grand Retail Mall in Chennai stands as one of BuildCore's most ambitious commercial undertakings. Spanning five levels, the development houses 120 retail stores, two themed food courts, a 600-seat IMAX theatre, and a dedicated children's entertainment zone."},
-    {title:"Skyline Apartments",type:"Residential",area:"12,500 sq ft",year:"2023",location:"Pune",client:"Skyline Realty Group",duration:"20 months",value:"₹7.8 Cr",description:"A boutique residential tower with 18 premium 3BHK apartments and a rooftop terrace.",highlights:["18 Premium 3BHK Units","Rooftop Terrace","Fitness Centre","EV Parking"],longDesc:"Skyline Apartments introduced boutique high-rise living to Pune's Koregaon Park neighbourhood. The 12-storey tower accommodates 18 generously proportioned 3BHK apartments, each finished to a premium specification with Italian marble, modular kitchens, and smart lighting."},
-    {title:"Corporate HQ — Infra Co.",type:"Commercial",area:"42,000 sq ft",year:"2022",location:"Mumbai",client:"Infra Co. Ltd.",duration:"22 months",value:"₹22 Cr",description:"Infra Co.'s flagship headquarters featuring a grand atrium lobby and sky garden.",highlights:["Grand Atrium Lobby","Training Auditorium","Sky Garden","24/7 Backup Power"],longDesc:"Infra Co.'s new headquarters in Mumbai's BKC district is a statement of corporate ambition. The 10-storey building opens into a four-storey glass atrium lobby that floods the interior with natural light. BuildCore delivered the project under a fast-track 22-month programme."},
+    {title:"TechHub Office Complex",type:"Commercial",area:"28,000 sq ft",year:"2024",location:"Hyderabad",client:"TechHub Ventures Pvt. Ltd.",duration:"18 months",value:"₹14.5 Cr",description:"A cutting-edge 7-floor commercial complex with open-plan offices, conference suites, a rooftop café, and LEED Gold certification.",highlights:["LEED Gold Certified","Rooftop Café","EV Charging Bays","Seismic-Safe Structure"],longDesc:"TechHub Office Complex redefines the modern workplace in Hyderabad's HITEC City. The 7-storey building features column-free open-plan floors, state-of-the-art conference suites, and a rooftop café with panoramic city views. BuildCore engineered the structure to exceed seismic safety standards while achieving LEED Gold certification."},
+    {title:"Coastal Retreat",type:"Residential",area:"6,800 sq ft",year:"2023",location:"Goa",client:"Mr. Sameer D'Souza",duration:"16 months",value:"₹4.2 Cr",description:"An oceanfront private villa blending contemporary architecture with natural stone and wood.",highlights:["Oceanfront Location","Private Pool Deck","Natural Stone Finish","Outdoor Cinema"],longDesc:"Perched on a cliff overlooking the Arabian Sea, Coastal Retreat is BuildCore's most visually striking residential project."},
+    {title:"Grand Retail Mall",type:"Commercial",area:"85,000 sq ft",year:"2023",location:"Chennai",client:"Grand Retail Corp.",duration:"28 months",value:"₹48 Cr",description:"A landmark multi-level retail destination with 120 stores, 2 food courts, an IMAX theatre.",highlights:["120 Retail Stores","IMAX Theatre","600 Parking Slots","Central HVAC System"],longDesc:"Grand Retail Mall in Chennai stands as one of BuildCore's most ambitious commercial undertakings."},
+    {title:"Skyline Apartments",type:"Residential",area:"12,500 sq ft",year:"2023",location:"Pune",client:"Skyline Realty Group",duration:"20 months",value:"₹7.8 Cr",description:"A boutique residential tower with 18 premium 3BHK apartments and a rooftop terrace.",highlights:["18 Premium 3BHK Units","Rooftop Terrace","Fitness Centre","EV Parking"],longDesc:"Skyline Apartments introduced boutique high-rise living to Pune's Koregaon Park neighbourhood."},
+    {title:"Corporate HQ — Infra Co.",type:"Commercial",area:"42,000 sq ft",year:"2022",location:"Mumbai",client:"Infra Co. Ltd.",duration:"22 months",value:"₹22 Cr",description:"Infra Co.'s flagship headquarters featuring a grand atrium lobby and sky garden.",highlights:["Grand Atrium Lobby","Training Auditorium","Sky Garden","24/7 Backup Power"],longDesc:"Infra Co.'s new headquarters in Mumbai's BKC district is a statement of corporate ambition."},
   ],
   testimonials:[
     {name:"Ravi Kumar",company:"Homeowner",location:"Bangalore",feedback:"BuildCore delivered our dream villa on time and within budget. The quality of construction and finishing exceeded every expectation.",rating:5},
@@ -396,7 +378,6 @@ const data = {
   footer:{text:"© 2026 BuildCore Constructions Pvt. Ltd. All rights reserved.",links:["Privacy Policy","Terms of Service","Support"],tagline:"Built on Trust. Delivered with Pride."},
 };
 
-/* ─── Icon Renderer helpers ──────────────────────────────────────────────── */
 const FeatureIcon = ({ type }) => {
   const map = { engineer:<HardHatIcon/>, clock:<ClockIcon/>, brick:<BrickIcon/>, compass:<CompassIcon/>, shield:<ShieldCheckIcon/>, support:<HeadphonesIcon/> };
   return <div className="icon-box">{map[type] || <HardHatIcon />}</div>;
@@ -410,7 +391,6 @@ const WhyIcon = ({ type }) => {
   return <div className="why-icon-wrap">{map[type] || <SearchIcon />}</div>;
 };
 
-/* ─── Shared UI ───────────────────────────────────────────────────────────── */
 const SectionLabel=({children})=>(
   <p className="section-line" style={{color:"var(--gold)",fontSize:11,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:12}}>{children}</p>
 );
@@ -449,82 +429,791 @@ const SplashScreen=()=>(
   </div>
 );
 
-/* ─── User Avatar helper ──────────────────────────────────────────────────── */
-const getInitials = (name) => name ? name.split(" ").map(n=>n[0]).join("").toUpperCase().slice(0,2) : "U";
+/* ══════════════════════════════════════════════════════════════════
+   AUTH SYSTEM
+   ══════════════════════════════════════════════════════════════════ */
+const USERS_DB = [
+  { id:1, name:"Ravi Kumar", email:"ravi@example.com", password:"password123", phone:"+91 98765 00001", location:"Bangalore", joinDate:"Jan 2025", avatar:"RK", plan:"Premium", savedProjects:["Whitefield Luxury Villas","Skyline Apartments"], inquiries:3 },
+];
 
-/* ─── Navbar ──────────────────────────────────────────────────────────────── */
-const Navbar=({page,setPage,scrolled})=>{
-  const { user, logout } = useAuth();
-  const [dropOpen, setDropOpen] = useState(false);
+const AuthModal = ({ onClose, onLogin }) => {
+  const [tab, setTab] = useState("login");
+  const [loginForm, setLoginForm] = useState({ email:"", password:"" });
+  const [signupForm, setSignupForm] = useState({ name:"", email:"", phone:"", password:"", confirm:"" });
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    setDropOpen(false);
-    setPage("Home");
+  const handleLogin = (e) => {
+    e.preventDefault(); setError(""); setLoading(true);
+    setTimeout(() => {
+      const user = USERS_DB.find(u => u.email === loginForm.email && u.password === loginForm.password);
+      if (user) { onLogin(user); onClose(); } else { setError("Invalid email or password. Try: ravi@example.com / password123"); }
+      setLoading(false);
+    }, 800);
   };
 
-  return(
-  <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:50,transition:"all .3s",
-    background:scrolled?"rgba(7,5,15,0.97)":"rgba(7,5,15,0.18)",
-    backdropFilter:"blur(16px)",
-    borderBottom:scrolled?"1px solid var(--border)":"1px solid transparent",
-    boxShadow:scrolled?"0 2px 24px rgba(0,0,0,.6)":"none"}}>
-    <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px",display:"flex",alignItems:"center",justifyContent:"space-between",height:64}}>
-      <button onClick={()=>setPage("Home")} style={{background:"none",border:"none",cursor:"pointer"}}>
-        <span style={{fontSize:22,fontWeight:800,letterSpacing:"0.1em",fontFamily:"'Barlow Condensed',sans-serif"}}>
-          <span style={{color:"var(--gold)"}}>BUILD</span><span style={{color:"var(--cream)"}}>CORE</span>
-        </span>
-      </button>
-      <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-        {data.navbar.links.map(l=>(
-          <button key={l} onClick={()=>setPage(l)}
-            className={`nav-link ${page===l?"active":""}`}>
-            {l}
-          </button>
-        ))}
-        <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
-          style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:6,background:"#25D366",color:"#fff",textDecoration:"none",fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"}}>
-          <WhatsAppSVG size={13}/> WhatsApp
-        </a>
-        {user ? (
-          <div style={{position:"relative"}}>
-            <button
-              onClick={()=>setDropOpen(o=>!o)}
-              style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:"4px 8px",borderRadius:8}}>
-              <div className="user-avatar">{getInitials(user.name)}</div>
-              <span style={{fontSize:12,fontWeight:600,color:"var(--cream)",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name.split(" ")[0]}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+  const handleSignup = (e) => {
+    e.preventDefault(); setError("");
+    if (signupForm.password !== signupForm.confirm) { setError("Passwords don't match."); return; }
+    if (signupForm.password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (USERS_DB.find(u => u.email === signupForm.email)) { setError("Email already registered. Please log in."); return; }
+    setLoading(true);
+    setTimeout(() => {
+      const newUser = { id:USERS_DB.length+1, name:signupForm.name, email:signupForm.email, password:signupForm.password, phone:signupForm.phone||"Not provided", location:"India", joinDate:new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}), avatar:signupForm.name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase(), plan:"Essential", savedProjects:[], inquiries:0 };
+      USERS_DB.push(newUser); onLogin(newUser); onClose(); setLoading(false);
+    }, 900);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="auth-modal-box" onClick={e=>e.stopPropagation()}>
+        <div style={{padding:"28px 28px 0",textAlign:"center"}}>
+          <button onClick={onClose} style={{float:"right",background:"var(--navy-600)",border:"1px solid var(--border-light)",color:"var(--cream)",width:30,height:30,borderRadius:"50%",cursor:"pointer",fontSize:13}}>✕</button>
+          <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:56,height:56,borderRadius:16,background:"linear-gradient(135deg,rgba(232,160,48,.18),rgba(155,93,229,.18))",border:"1px solid rgba(232,160,48,.3)",marginBottom:14}}>
+            <UserIcon size={24} color="var(--gold)"/>
+          </div>
+          <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:4}}>{tab==="login"?"Welcome Back":"Create Account"}</h2>
+          <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:0}}>{tab==="login"?"Sign in to your BuildCore account":"Join thousands of happy BuildCore clients"}</p>
+        </div>
+        <div style={{display:"flex",borderBottom:"1px solid var(--border-light)",margin:"20px 28px 0"}}>
+          <button className={`auth-tab ${tab==="login"?"active":""}`} onClick={()=>{setTab("login");setError("");}}>Sign In</button>
+          <button className={`auth-tab ${tab==="signup"?"active":""}`} onClick={()=>{setTab("signup");setError("");}}>Create Account</button>
+        </div>
+        <div style={{padding:"24px 28px 28px"}}>
+          {error&&<div style={{padding:"10px 14px",borderRadius:8,background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",color:"#EF4444",fontSize:12,marginBottom:16}}>⚠ {error}</div>}
+          {tab==="login"?(
+            <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:14}}>
+              <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email Address</label>
+                <div style={{position:"relative"}}><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={15} color="var(--text-muted)"/></span>
+                  <input required type="email" placeholder="you@email.com" value={loginForm.email} onChange={e=>setLoginForm(p=>({...p,email:e.target.value}))} style={{paddingLeft:40}}/></div></div>
+              <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Password</label>
+                <div style={{position:"relative"}}><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={15} color="var(--text-muted)"/></span>
+                  <input required type={showPw?"text":"password"} placeholder="Your password" value={loginForm.password} onChange={e=>setLoginForm(p=>({...p,password:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
+                  <button type="button" onClick={()=>setShowPw(v=>!v)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)"}}>{showPw?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}</button></div></div>
+              <button type="submit" className="gold-btn" disabled={loading} style={{width:"100%",padding:"13px",borderRadius:8,fontSize:13,letterSpacing:".08em",textTransform:"uppercase",opacity:loading?.7:1}}>{loading?"Signing In…":"Sign In →"}</button>
+              <div style={{textAlign:"center",fontSize:12,color:"var(--text-muted)"}}>Hint: ravi@example.com / password123</div>
+            </form>
+          ):(
+            <form onSubmit={handleSignup} style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name *</label>
+                <div style={{position:"relative"}}><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><UserIcon size={15} color="var(--text-muted)"/></span>
+                  <input required placeholder="Ravi Kumar" value={signupForm.name} onChange={e=>setSignupForm(p=>({...p,name:e.target.value}))} style={{paddingLeft:40}}/></div></div>
+              <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email Address *</label>
+                <div style={{position:"relative"}}><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={15} color="var(--text-muted)"/></span>
+                  <input required type="email" placeholder="you@email.com" value={signupForm.email} onChange={e=>setSignupForm(p=>({...p,email:e.target.value}))} style={{paddingLeft:40}}/></div></div>
+              <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
+                <div style={{position:"relative"}}><span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><PhoneIcon size={15} color="var(--text-muted)"/></span>
+                  <input type="tel" placeholder="+91 98765 43210" value={signupForm.phone} onChange={e=>setSignupForm(p=>({...p,phone:e.target.value}))} style={{paddingLeft:40}}/></div></div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Password *</label>
+                  <input required type="password" placeholder="Min 6 chars" value={signupForm.password} onChange={e=>setSignupForm(p=>({...p,password:e.target.value}))}/></div>
+                <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Confirm *</label>
+                  <input required type="password" placeholder="Repeat" value={signupForm.confirm} onChange={e=>setSignupForm(p=>({...p,confirm:e.target.value}))}/></div>
+              </div>
+              <button type="submit" className="gold-btn" disabled={loading} style={{width:"100%",padding:"13px",borderRadius:8,fontSize:13,letterSpacing:".08em",textTransform:"uppercase",marginTop:4,opacity:loading?.7:1}}>{loading?"Creating Account…":"Create Account →"}</button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UserDropdown = ({ user, onProfile, onLogout, onClose }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+  return (
+    <div ref={ref} className="user-dropdown">
+      <div style={{padding:"16px 18px",borderBottom:"1px solid var(--border-light)",display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:40,height:40,borderRadius:"50%",background:"linear-gradient(135deg,#C87820,#F5C060)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"var(--navy-900)",flexShrink:0}}>{user.avatar}</div>
+        <div style={{minWidth:0}}>
+          <p style={{fontSize:14,fontWeight:700,color:"var(--cream)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{user.name}</p>
+          <p style={{fontSize:11,color:"var(--text-muted)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{user.email}</p>
+        </div>
+        <span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:20,background:"rgba(232,160,48,.15)",color:"var(--gold)",border:"1px solid rgba(232,160,48,.3)",whiteSpace:"nowrap",flexShrink:0}}>{user.plan}</span>
+      </div>
+      <div style={{padding:"8px 0"}}>
+        <button className="dropdown-item" onClick={()=>{onProfile();onClose();}}><UserIcon size={15} color="var(--gold)"/> My Profile</button>
+        <button className="dropdown-item" onClick={()=>{onProfile();onClose();}}><FileIcon size={15} color="var(--text-soft)"/> My Inquiries</button>
+        <button className="dropdown-item" onClick={()=>{onProfile();onClose();}}><HeartIcon size={15} color="var(--text-soft)"/> Saved Projects</button>
+        <button className="dropdown-item" onClick={()=>{onProfile();onClose();}}><BellIcon size={15} color="var(--text-soft)"/> Notifications</button>
+        <div style={{height:1,background:"var(--border-light)",margin:"8px 18px"}}/>
+        <button className="dropdown-item" onClick={()=>{onProfile();onClose();}}><EditIcon size={15} color="var(--text-soft)"/> Edit Profile</button>
+        <button className="dropdown-item danger" onClick={()=>{onLogout();onClose();}}><LogOutIcon size={15} color="#EF4444"/> Sign Out</button>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   BOOKING PAGE
+   ══════════════════════════════════════════════════════════════════ */
+
+const BOOKING_SERVICES = [
+  { id:"residential", icon:"🏠", title:"Residential Construction", subtitle:"Villas, Apartments, Row Houses", duration:"60 min", tag:"Most Booked" },
+  { id:"commercial",  icon:"🏢", title:"Commercial Construction",  subtitle:"Offices, Warehouses, IT Parks", duration:"60 min", tag:null },
+  { id:"interior",    icon:"🎨", title:"Interior Design",          subtitle:"Full home or office makeover", duration:"45 min", tag:null },
+  { id:"structural",  icon:"🏗️", title:"Structural Engineering",  subtitle:"Foundation, Audit, Retrofit", duration:"45 min", tag:null },
+  { id:"green",       icon:"🌿", title:"Green / Sustainable Build",subtitle:"LEED, Solar, Eco Materials",   duration:"45 min", tag:"New" },
+  { id:"renovation",  icon:"🔨", title:"Renovation & Remodeling",  subtitle:"Expand, Upgrade, Transform",  duration:"30 min", tag:null },
+];
+
+const CONSULTANTS = [
+  { id:"arjun",  name:"Arjun Mehta",  role:"Founder & CEO",          exp:"20 yrs", img:0, tag:"Senior" },
+  { id:"priya",  name:"Priya Sharma", role:"Head of Projects",        exp:"14 yrs", img:1, tag:null },
+  { id:"vikram", name:"Vikram Rao",   role:"Chief Architect",         exp:"18 yrs", img:2, tag:"Architecture" },
+  { id:"deepa",  name:"Deepa Iyer",   role:"Interior Design Lead",    exp:"12 yrs", img:3, tag:"Interior" },
+  { id:"rohan",  name:"Rohan Desai",  role:"Structural Engineer",     exp:"16 yrs", img:4, tag:"Structural" },
+  { id:"nisha",  name:"Nisha Patel",  role:"Client Relations Manager",exp:"9 yrs",  img:5, tag:null },
+];
+
+const MEETING_MODES = [
+  { id:"video",    icon:"🎥", title:"Video Call",     subtitle:"Google Meet / Zoom", note:"Link sent by email" },
+  { id:"phone",    icon:"📞", title:"Phone Call",     subtitle:"We call you",        note:"Confirm your number" },
+  { id:"inperson", icon:"🏢", title:"In-Person Visit",subtitle:"Our Bangalore office",note:"Brigade Road, MG Road" },
+  { id:"site",     icon:"📍", title:"Site Visit",     subtitle:"We visit your plot",  note:"Bangalore & NCR only" },
+];
+
+const TIME_SLOTS = ["9:00 AM","9:45 AM","10:30 AM","11:15 AM","12:00 PM","2:00 PM","2:45 PM","3:30 PM","4:15 PM","5:00 PM"];
+const BOOKED_SLOTS = ["10:30 AM","2:45 PM"];
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+function Calendar({ selected, onSelect }) {
+  const today = new Date(2026, 4, 29);
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const isDisabled = (d) => {
+    if (!d) return true;
+    const dt = new Date(viewYear, viewMonth, d);
+    return dt < today || dt.getDay() === 0;
+  };
+  const isSelected = (d) => {
+    if (!d || !selected) return false;
+    return selected.year === viewYear && selected.month === viewMonth && selected.day === d;
+  };
+  const isToday = (d) => {
+    if (!d) return false;
+    return viewYear === today.getFullYear() && viewMonth === today.getMonth() && d === today.getDate();
+  };
+
+  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y=>y-1); } else setViewMonth(m=>m-1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y=>y+1); } else setViewMonth(m=>m+1); };
+  const canPrev = !(viewYear === today.getFullYear() && viewMonth === today.getMonth());
+
+  return (
+    <div style={{background:"linear-gradient(145deg,#140E2E,#1C1542)",border:"1px solid var(--border-light)",borderRadius:14,padding:"20px 18px"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+        <button onClick={prevMonth} disabled={!canPrev} style={{width:32,height:32,borderRadius:8,border:"1px solid var(--border-light)",background:"transparent",color:canPrev?"var(--cream)":"var(--border-light)",cursor:canPrev?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <ChevronLeftIcon size={16} color={canPrev?"var(--cream)":"var(--border-light)"}/>
+        </button>
+        <span style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>{MONTHS[viewMonth]} {viewYear}</span>
+        <button onClick={nextMonth} style={{width:32,height:32,borderRadius:8,border:"1px solid var(--border-light)",background:"transparent",color:"var(--cream)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <ChevronRightIcon size={16} color="var(--cream)"/>
+        </button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:8}}>
+        {DAYS_SHORT.map(d=><div key={d} style={{textAlign:"center",fontSize:10,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",padding:"4px 0"}}>{d}</div>)}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+        {cells.map((d,i)=>{
+          const disabled = isDisabled(d);
+          const sel = isSelected(d);
+          const tod = isToday(d);
+          return (
+            <button key={i} onClick={()=>!disabled&&d&&onSelect({year:viewYear,month:viewMonth,day:d})}
+              disabled={disabled||!d}
+              className={`cal-day${sel?" cal-selected":tod?" cal-today":disabled?" cal-disabled":""}`}
+              style={{background:sel?"linear-gradient(135deg,#C87820,#F5C060)":undefined,color:sel?"var(--navy-900)":undefined,border:sel?"none":undefined,cursor:d&&!disabled?"pointer":"default"}}>
+              {d||""}
             </button>
-            {dropOpen && (
-              <div className="user-dropdown" onClick={()=>setDropOpen(false)}>
-                <div style={{padding:"12px 16px",borderBottom:"1px solid var(--border-light)"}}>
-                  <p style={{fontSize:13,fontWeight:700,color:"var(--cream)",marginBottom:2}}>{user.name}</p>
-                  <p style={{fontSize:11,color:"var(--text-muted)"}}>{user.email}</p>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const BookingPage = ({ setPage, user, onOpenAuth }) => {
+  const STEPS = ["Service","Consultant","Mode","Date & Time","Details","Confirm"];
+  const [step, setStep] = useState(0);
+  const [service, setService] = useState(null);
+  const [consultant, setConsultant] = useState(null);
+  const [mode, setMode] = useState(null);
+  const [date, setDate] = useState(null);
+  const [slot, setSlot] = useState(null);
+  const [details, setDetails] = useState({ name: user?.name||"", email: user?.email||"", phone: user?.phone||"", plot:"", budget:"", notes:"" });
+  const [confirmed, setConfirmed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [bookingRef] = useState("BK-" + Math.floor(100000+Math.random()*900000));
+
+  const canNext = () => {
+    if (step===0) return !!service;
+    if (step===1) return !!consultant;
+    if (step===2) return !!mode;
+    if (step===3) return !!date && !!slot;
+    if (step===4) return details.name && details.email && details.phone;
+    return true;
+  };
+
+  const formatDate = (d) => {
+    if (!d) return "";
+    return `${DAYS_SHORT[new Date(d.year,d.month,d.day).getDay()]}, ${d.day} ${MONTHS[d.month].slice(0,3)} ${d.year}`;
+  };
+
+  const handleConfirm = () => {
+    setLoading(true);
+    setTimeout(() => { setLoading(false); setConfirmed(true); }, 1200);
+  };
+
+  if (confirmed) {
+    return (
+      <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)"}}>
+        <div style={{maxWidth:640,margin:"0 auto",padding:"80px 24px",textAlign:"center"}}>
+          <div style={{width:96,height:96,borderRadius:"50%",background:"linear-gradient(135deg,#C87820,#F5C060)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 28px",boxShadow:"0 0 0 12px rgba(232,160,48,.12)"}}>
+            <CheckIcon size={44} color="var(--navy-900)"/>
+          </div>
+          <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:42,fontWeight:800,marginBottom:8}}>Booking Confirmed!</h1>
+          <p style={{fontSize:15,color:"var(--text-soft)",marginBottom:32,lineHeight:1.7}}>
+            Your consultation has been booked. A confirmation email is on its way to <strong style={{color:"var(--cream)"}}>{details.email}</strong>.
+          </p>
+          <div style={{padding:28,borderRadius:18,border:"1px solid rgba(232,160,48,.4)",background:"linear-gradient(145deg,#1A1240,#221650)",textAlign:"left",marginBottom:28}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",paddingBottom:16,marginBottom:16,borderBottom:"1px solid var(--border)"}}>
+              <div>
+                <p style={{fontSize:11,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",fontWeight:700,marginBottom:4}}>Booking Reference</p>
+                <p style={{fontSize:22,fontWeight:800,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif"}}>{bookingRef}</p>
+              </div>
+              <span style={{fontSize:11,fontWeight:700,padding:"6px 14px",borderRadius:20,background:"rgba(72,199,142,.12)",color:"#48C78E",border:"1px solid rgba(72,199,142,.3)"}}>Confirmed</span>
+            </div>
+            {[
+              {label:"Service",val:BOOKING_SERVICES.find(s=>s.id===service)?.title},
+              {label:"Consultant",val:CONSULTANTS.find(c=>c.id===consultant)?.name},
+              {label:"Meeting Mode",val:MEETING_MODES.find(m=>m.id===mode)?.title},
+              {label:"Date & Time",val:`${formatDate(date)} · ${slot}`},
+              {label:"Your Name",val:details.name},
+              {label:"Phone",val:details.phone},
+            ].map((r,i)=>(
+              <div key={i} className="summary-row">
+                <span style={{fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,flexShrink:0}}>{r.label}</span>
+                <span style={{fontSize:14,color:"var(--cream)",fontWeight:600,textAlign:"right"}}>{r.val}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap"}}>
+            <button onClick={()=>setPage("Home")} className="gold-btn" style={{padding:"13px 32px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase"}}>Back to Home</button>
+            <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi! I just booked a consultation (Ref: ${bookingRef}). Looking forward to our meeting!`} target="_blank" rel="noopener noreferrer"
+              style={{display:"flex",alignItems:"center",gap:8,padding:"13px 28px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}>
+              <WhatsAppSVG size={14}/> Message Us
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)"}}>
+      <section style={{position:"relative",padding:"72px 0 56px",overflow:"hidden"}}>
+        <img src={IMGS.bookingBg} alt="booking" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(7,5,15,.9),rgba(26,13,58,.82))"}}/>
+        <div style={{position:"relative",maxWidth:1100,margin:"0 auto",padding:"0 32px",zIndex:2}}>
+          <SectionLabel>Free Consultation</SectionLabel>
+          <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2.2rem,5vw,4rem)",fontWeight:800,lineHeight:1.04,maxWidth:680,marginBottom:12}}>
+            Book Your Construction Consultation
+          </h1>
+          <p style={{fontSize:15,color:"rgba(240,238,255,.75)",maxWidth:520,lineHeight:1.7}}>
+            Free 30–60 minute sessions with our senior experts. No obligations — just honest advice tailored to your project.
+          </p>
+          <div style={{display:"flex",gap:24,marginTop:24,flexWrap:"wrap"}}>
+            {["✅ 100% Free Consultation","⚡ 48hr Confirmation","🔒 No Commitment Required","📍 Online or In-Person"].map((t,i)=>(
+              <span key={i} style={{fontSize:12,color:"rgba(240,238,255,.7)",fontWeight:600}}>{t}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 32px 80px"}}>
+        <div style={{display:"flex",alignItems:"center",marginBottom:48,overflowX:"auto",paddingBottom:4}}>
+          {STEPS.map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",flex:i<STEPS.length-1?1:"none",minWidth:i<STEPS.length-1?0:"auto"}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flexShrink:0}}>
+                <div className={`stepper-dot ${i<step?"done":i===step?"active":"pending"}`}>
+                  {i<step?<CheckIcon size={15} color="var(--navy-900)"/>:i+1}
                 </div>
-                <button className="user-dropdown-item" onClick={()=>{ setPage("Profile"); setDropOpen(false); }}>
-                  <UserIcon size={16} color="var(--text-muted)"/> My Profile
+                <span style={{fontSize:10,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:i===step?"var(--gold)":i<step?"var(--cream)":"var(--text-muted)",whiteSpace:"nowrap"}}>{s}</span>
+              </div>
+              {i<STEPS.length-1&&<div className={`stepper-line ${i<step?"done":""}`} style={{margin:"0 8px",marginBottom:20}}/>}
+            </div>
+          ))}
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:28,alignItems:"start"}}>
+          <div>
+            {step===0&&(
+              <div>
+                <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:6}}>What can we help you with?</h2>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Select the service you'd like to discuss in your consultation.</p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                  {BOOKING_SERVICES.map(sv=>(
+                    <div key={sv.id} className={`booking-step-card ${service===sv.id?"selected":""}`} onClick={()=>setService(sv.id)}>
+                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:10}}>
+                        <span style={{fontSize:28}}>{sv.icon}</span>
+                        {sv.tag&&<span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,background:sv.tag==="Most Booked"?"rgba(232,160,48,.15)":"rgba(99,179,237,.12)",color:sv.tag==="Most Booked"?"var(--gold)":"#63B3ED",border:`1px solid ${sv.tag==="Most Booked"?"rgba(232,160,48,.35)":"rgba(99,179,237,.3)"}`}}>{sv.tag}</span>}
+                      </div>
+                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+                        <div>
+                          <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,marginBottom:4}}>{sv.title}</h3>
+                          <p style={{fontSize:12,color:"var(--text-muted)"}}>{sv.subtitle}</p>
+                        </div>
+                        <span style={{fontSize:11,color:"var(--text-soft)",whiteSpace:"nowrap",flexShrink:0,marginTop:2}}>⏱ {sv.duration}</span>
+                      </div>
+                      {service===sv.id&&<div style={{marginTop:12,display:"flex",alignItems:"center",gap:6,color:"var(--gold)",fontSize:12,fontWeight:700}}><CheckCircleIcon size={14} color="var(--gold)"/> Selected</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step===1&&(
+              <div>
+                <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:6}}>Choose your consultant</h2>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Pick the expert best suited to your project.</p>
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                  {CONSULTANTS.map((c,ci)=>(
+                    <div key={c.id} className={`booking-step-card ${consultant===c.id?"selected":""}`} style={{padding:"18px 22px",cursor:"pointer"}} onClick={()=>setConsultant(c.id)}>
+                      <div style={{display:"flex",alignItems:"center",gap:16}}>
+                        <div style={{width:52,height:52,borderRadius:"50%",overflow:"hidden",flexShrink:0,border:`2px solid ${consultant===c.id?"var(--gold)":"var(--border-light)"}`}}>
+                          <img src={IMGS.team[c.img]} alt={c.name} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"top"}}/>
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                            <p style={{fontSize:15,fontWeight:700,color:"var(--cream)"}}>{c.name}</p>
+                            {c.tag&&<span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"rgba(232,160,48,.12)",color:"var(--gold)",border:"1px solid rgba(232,160,48,.3)"}}>{c.tag}</span>}
+                          </div>
+                          <p style={{fontSize:12,color:"var(--gold)",marginTop:1}}>{c.role}</p>
+                          <p style={{fontSize:11,color:"var(--text-muted)",marginTop:2}}>{c.exp} experience</p>
+                        </div>
+                        <div style={{flexShrink:0,width:24,height:24,borderRadius:"50%",border:`2px solid ${consultant===c.id?"var(--gold)":"var(--border-light)"}`,display:"flex",alignItems:"center",justifyContent:"center",background:consultant===c.id?"var(--gold)":"transparent"}}>
+                          {consultant===c.id&&<CheckIcon size={13} color="var(--navy-900)"/>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step===2&&(
+              <div>
+                <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:6}}>How would you like to meet?</h2>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Choose the format that works best for you.</p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                  {MEETING_MODES.map(m=>(
+                    <div key={m.id} className={`booking-step-card ${mode===m.id?"selected":""}`} onClick={()=>setMode(m.id)}>
+                      <span style={{fontSize:32,display:"block",marginBottom:12}}>{m.icon}</span>
+                      <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,fontWeight:800,marginBottom:4}}>{m.title}</h3>
+                      <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:8}}>{m.subtitle}</p>
+                      <span style={{fontSize:11,color:"var(--text-soft)",background:"var(--navy-700)",padding:"3px 10px",borderRadius:4,border:"1px solid var(--border)"}}>{m.note}</span>
+                      {mode===m.id&&<div style={{marginTop:12,display:"flex",alignItems:"center",gap:6,color:"var(--gold)",fontSize:12,fontWeight:700}}><CheckCircleIcon size={14} color="var(--gold)"/> Selected</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step===3&&(
+              <div>
+                <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:6}}>Pick a date and time</h2>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Available Mon–Sat. Sundays and past dates are unavailable.</p>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+                  <Calendar selected={date} onSelect={d=>{setDate(d);setSlot(null);}}/>
+                  <div>
+                    {date?(
+                      <>
+                        <p style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:"var(--gold)",marginBottom:14}}>Available Slots — {formatDate(date)}</p>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                          {TIME_SLOTS.map(t=>{
+                            const booked = BOOKED_SLOTS.includes(t);
+                            return(
+                              <button key={t} onClick={()=>!booked&&setSlot(t)}
+                                className={`slot-btn${slot===t?" selected":""}${booked?" disabled":""}`}
+                                disabled={booked}>
+                                {t}{booked&&" ✗"}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p style={{fontSize:11,color:"var(--text-muted)",marginTop:12}}>All times in IST (UTC+5:30). Strikethrough = booked.</p>
+                      </>
+                    ):(
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:10,opacity:.5}}>
+                        <CalendarCheckIcon size={40}/>
+                        <p style={{fontSize:13,color:"var(--text-muted)",textAlign:"center"}}>Select a date to see available time slots</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step===4&&(
+              <div>
+                <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:6}}>Your project details</h2>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Help your consultant prepare by sharing some basics about your project.</p>
+                <div style={{display:"flex",flexDirection:"column",gap:16}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                    <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name *</label>
+                      <input required value={details.name} onChange={e=>setDetails(p=>({...p,name:e.target.value}))} placeholder="Ravi Kumar"/></div>
+                    <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email *</label>
+                      <input required type="email" value={details.email} onChange={e=>setDetails(p=>({...p,email:e.target.value}))} placeholder="you@email.com"/></div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                    <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone *</label>
+                      <input required type="tel" value={details.phone} onChange={e=>setDetails(p=>({...p,phone:e.target.value}))} placeholder="+91 98765 43210"/></div>
+                    <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Plot / Location</label>
+                      <input value={details.plot} onChange={e=>setDetails(p=>({...p,plot:e.target.value}))} placeholder="e.g. Whitefield, Bangalore"/></div>
+                  </div>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Approximate Budget</label>
+                    <select value={details.budget} onChange={e=>setDetails(p=>({...p,budget:e.target.value}))}>
+                      <option value="">Select a range</option>
+                      <option>Under ₹25 Lakhs</option>
+                      <option>₹25L – ₹75L</option>
+                      <option>₹75L – ₹1.5 Cr</option>
+                      <option>₹1.5 Cr – ₹3 Cr</option>
+                      <option>₹3 Cr – ₹10 Cr</option>
+                      <option>Above ₹10 Cr</option>
+                    </select></div>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Additional Notes</label>
+                    <textarea rows={4} value={details.notes} onChange={e=>setDetails(p=>({...p,notes:e.target.value}))} placeholder="Tell us anything else about your project..."/></div>
+                </div>
+              </div>
+            )}
+
+            {step===5&&(
+              <div>
+                <h2 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:26,fontWeight:800,marginBottom:6}}>Review & confirm your booking</h2>
+                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Double-check your details before confirming.</p>
+                <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",marginBottom:20}}>
+                  <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:14}}>Booking Summary</p>
+                  {[
+                    {label:"Service",val:BOOKING_SERVICES.find(s=>s.id===service)?.title,sub:BOOKING_SERVICES.find(s=>s.id===service)?.subtitle},
+                    {label:"Consultant",val:CONSULTANTS.find(c=>c.id===consultant)?.name,sub:CONSULTANTS.find(c=>c.id===consultant)?.role},
+                    {label:"Meeting Mode",val:MEETING_MODES.find(m=>m.id===mode)?.title,sub:MEETING_MODES.find(m=>m.id===mode)?.note},
+                    {label:"Date & Time",val:formatDate(date),sub:slot},
+                    {label:"Your Name",val:details.name,sub:details.email},
+                    {label:"Phone",val:details.phone,sub:details.plot||"No location specified"},
+                  ].map((r,i)=>(
+                    <div key={i} className="summary-row">
+                      <span style={{fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,flexShrink:0,minWidth:110}}>{r.label}</span>
+                      <div style={{textAlign:"right"}}>
+                        <p style={{fontSize:14,color:"var(--cream)",fontWeight:700,marginBottom:1}}>{r.val}</p>
+                        {r.sub&&<p style={{fontSize:11,color:"var(--text-muted)"}}>{r.sub}</p>}
+                      </div>
+                    </div>
+                  ))}
+                  {details.budget&&(
+                    <div className="summary-row">
+                      <span style={{fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700}}>Budget</span>
+                      <span style={{fontSize:14,color:"var(--gold)",fontWeight:700}}>{details.budget}</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{padding:16,borderRadius:10,border:"1px solid rgba(232,160,48,.3)",background:"rgba(232,160,48,.06)",marginBottom:20,display:"flex",alignItems:"flex-start",gap:12}}>
+                  <span style={{fontSize:18,flexShrink:0}}>ℹ️</span>
+                  <p style={{fontSize:12,color:"var(--text-soft)",lineHeight:1.7}}>This consultation is <strong style={{color:"var(--cream)"}}>completely free</strong>. A confirmation email and calendar invite will be sent within 30 minutes of booking.</p>
+                </div>
+                <button onClick={handleConfirm} className="gold-btn" disabled={loading}
+                  style={{width:"100%",padding:"16px",borderRadius:10,fontSize:14,letterSpacing:".08em",textTransform:"uppercase",opacity:loading?.7:1}}>
+                  {loading?"Confirming Your Booking…":"Confirm Booking — It's Free →"}
                 </button>
-                <button className="user-dropdown-item" onClick={()=>{ setPage("Contact"); setDropOpen(false); }}>
-                  <MessageSquareIcon size={16} color="var(--text-muted)"/> Get a Quote
+              </div>
+            )}
+
+            {step < 5 && (
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:32,paddingTop:20,borderTop:"1px solid var(--border)"}}>
+                <button onClick={()=>step>0&&setStep(s=>s-1)} disabled={step===0}
+                  className="outline-btn" style={{display:"flex",alignItems:"center",gap:8,padding:"12px 24px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase",opacity:step===0?.4:1,cursor:step===0?"not-allowed":"pointer"}}>
+                  <ChevronLeftIcon size={14}/> Back
                 </button>
-                <div style={{height:"1px",background:"var(--border-light)",margin:"4px 0"}}/>
-                <button className="user-dropdown-item danger" onClick={handleLogout}>
-                  <LogOutIcon size={16} color="currentColor"/> Sign Out
+                <button onClick={()=>canNext()&&setStep(s=>s+1)} disabled={!canNext()}
+                  className="gold-btn" style={{display:"flex",alignItems:"center",gap:8,padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase",opacity:canNext()?1:.45,cursor:canNext()?"pointer":"not-allowed"}}>
+                  Continue <ChevronRightIcon size={14} color="var(--navy-900)"/>
                 </button>
               </div>
             )}
           </div>
-        ) : (
-          <button onClick={()=>setPage("Login")} className="gold-btn" style={{padding:"8px 18px",borderRadius:6,fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
-            <UserIcon size={13} color="var(--navy-900)"/> Login
-          </button>
+
+          <div style={{position:"sticky",top:84,display:"flex",flexDirection:"column",gap:16}}>
+            <div style={{padding:22,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+              <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:16}}>Your Selections</p>
+              {[
+                {step:0,label:"Service",val:service?BOOKING_SERVICES.find(s=>s.id===service)?.title:null,icon:"🏠"},
+                {step:1,label:"Consultant",val:consultant?CONSULTANTS.find(c=>c.id===consultant)?.name:null,icon:"👤"},
+                {step:2,label:"Meeting Mode",val:mode?MEETING_MODES.find(m=>m.id===mode)?.title:null,icon:"📹"},
+                {step:3,label:"Date & Time",val:date&&slot?`${formatDate(date)} · ${slot}`:date?formatDate(date):null,icon:"📅"},
+                {step:4,label:"Name",val:details.name||null,icon:"👋"},
+              ].map((r,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:12}}>
+                  <span style={{fontSize:14,marginTop:1,flexShrink:0}}>{r.icon}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <p style={{fontSize:10,textTransform:"uppercase",letterSpacing:".08em",color:"var(--text-muted)",fontWeight:700,marginBottom:1}}>{r.label}</p>
+                    {r.val?(
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <p style={{fontSize:12,color:"var(--cream)",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.val}</p>
+                        {step>r.step&&<button onClick={()=>setStep(r.step)} style={{fontSize:9,color:"var(--gold)",background:"none",border:"none",cursor:"pointer",flexShrink:0,textTransform:"uppercase",fontWeight:700}}>Edit</button>}
+                      </div>
+                    ):(
+                      <p style={{fontSize:12,color:"var(--border-light)",fontStyle:"italic"}}>Not selected</p>
+                    )}
+                  </div>
+                  <span style={{fontSize:14,flexShrink:0}}>{r.val?"✅":"○"}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{padding:22,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
+              <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:14}}>Why Book with Us?</p>
+              {["100% Free — no charges","Expert consultants (10–20 yrs exp)","Personalized advice for your project","Receive a detailed project outline","No pushy sales tactics"].map((t,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <CheckCircleIcon size={14} color="#48C78E"/>
+                  <span style={{fontSize:12,color:"var(--text-soft)"}}>{t}</span>
+                </div>
+              ))}
+            </div>
+
+            <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
+              style={{display:"flex",alignItems:"center",gap:12,padding:"16px",borderRadius:12,background:"rgba(37,211,102,.1)",border:"1px solid rgba(37,211,102,.3)",textDecoration:"none",transition:"all .2s"}}
+              onMouseOver={e=>e.currentTarget.style.background="rgba(37,211,102,.15)"}
+              onMouseOut={e=>e.currentTarget.style.background="rgba(37,211,102,.1)"}>
+              <div style={{width:40,height:40,borderRadius:"50%",background:"#25D366",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <WhatsAppSVG size={20}/>
+              </div>
+              <div>
+                <p style={{fontSize:12,fontWeight:700,color:"var(--cream)",marginBottom:2}}>Prefer WhatsApp?</p>
+                <p style={{fontSize:11,color:"rgba(37,211,102,.9)"}}>Chat with us directly →</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Profile Page ────────────────────────────────────────────────────────── */
+const ProfilePage = ({ user, onUpdateUser, onLogout, setPage }) => {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: user.name, phone: user.phone, location: user.location });
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    onUpdateUser({ ...user, ...editForm, avatar: editForm.name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase() });
+    setEditing(false); setSaved(true); setTimeout(()=>setSaved(false),2500);
+  };
+
+  const activityFeed = [
+    { icon:"📋", label:"Submitted inquiry for Residential Construction", time:"2 days ago", status:"Pending" },
+    { icon:"👁️", label:"Viewed Whitefield Luxury Villas project", time:"5 days ago", status:"" },
+    { icon:"❤️", label:"Saved Skyline Apartments to favourites", time:"1 week ago", status:"" },
+    { icon:"💬", label:"Sent message via Contact form", time:"2 weeks ago", status:"Replied" },
+    { icon:"📞", label:"Requested callback for Premium plan", time:"3 weeks ago", status:"Done" },
+  ];
+
+  const tabs = ["overview","inquiries","saved","settings"];
+
+  return (
+    <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F 0%,#0F0A20 30%,#160D30 70%,#07050F 100%)"}}>
+      <div style={{position:"relative",padding:"60px 0 0",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,#0F0824 0%,#1A0D3A 60%,#0C0818 100%)"}}/>
+        <div style={{position:"relative",maxWidth:1100,margin:"0 auto",padding:"0 32px"}}>
+          <div style={{display:"flex",alignItems:"flex-end",gap:28,flexWrap:"wrap",marginBottom:0,paddingBottom:0}}>
+            <div style={{position:"relative",flexShrink:0}}>
+              <div style={{width:96,height:96,borderRadius:"50%",background:"linear-gradient(135deg,#C87820,#F5C060)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:32,color:"var(--navy-900)",border:"4px solid var(--navy-900)",boxShadow:"0 0 0 2px var(--gold)"}}>{user.avatar}</div>
+              <div style={{position:"absolute",bottom:4,right:4,width:22,height:22,borderRadius:"50%",background:"#25D366",border:"2px solid var(--navy-900)",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{width:8,height:8,borderRadius:"50%",background:"#fff"}}/></div>
+            </div>
+            <div style={{flex:1,minWidth:200,paddingBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:4}}>
+                <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:32,fontWeight:800,lineHeight:1,margin:0}}>{user.name}</h1>
+                <span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:"linear-gradient(135deg,rgba(232,160,48,.2),rgba(155,93,229,.2))",color:"var(--gold)",border:"1px solid rgba(232,160,48,.35)"}}>{user.plan} Plan</span>
+              </div>
+              <div style={{display:"flex",gap:18,flexWrap:"wrap",marginTop:8}}>
+                <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><MailIcon size={12} color="var(--text-muted)"/> {user.email}</span>
+                <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><PhoneIcon size={12} color="var(--text-muted)"/> {user.phone}</span>
+                <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><MapPinIcon size={12} color="var(--text-muted)"/> {user.location}</span>
+              </div>
+              <p style={{fontSize:11,color:"var(--text-muted)",marginTop:6}}>Member since {user.joinDate}</p>
+            </div>
+            <div style={{display:"flex",gap:10,flexShrink:0,paddingBottom:8}}>
+              <button className="edit-btn" onClick={()=>setEditing(v=>!v)} style={editing?{borderColor:"var(--gold)",color:"var(--gold)",background:"var(--gold-dim)"}:{}}><EditIcon size={13}/> {editing?"Cancel":"Edit Profile"}</button>
+              <button onClick={onLogout} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(239,68,68,.08)",border:"1.5px solid rgba(239,68,68,.25)",color:"#EF4444",cursor:"pointer"}}>
+                <LogOutIcon size={13}/> Sign Out
+              </button>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--border-light)",marginTop:24}}>
+            {tabs.map(t=>(
+              <button key={t} className={`auth-tab ${activeTab===t?"active":""}`} style={{textTransform:"capitalize",letterSpacing:".08em"}} onClick={()=>setActiveTab(t)}>
+                {t==="overview"?"Overview":t==="inquiries"?"My Inquiries":t==="saved"?"Saved Projects":"Settings"}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"36px 32px 80px"}}>
+        {activeTab==="overview"&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr 340px",gap:28}}>
+            <div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,marginBottom:28}}>
+                {[{label:"Active Inquiries",value:user.inquiries,icon:"📋",color:"var(--gold)"},{label:"Saved Projects",value:user.savedProjects.length,icon:"❤️",color:"#E1306C"},{label:"Months Active",value:4,icon:"📅",color:"#63B3ED"}].map((s,i)=>(
+                  <div key={i} className="profile-stat-card">
+                    <div style={{fontSize:28,marginBottom:8}}>{s.icon}</div>
+                    <p style={{fontSize:28,fontWeight:800,color:s.color,fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1,marginBottom:4}}>{s.value}</p>
+                    <p style={{fontSize:12,color:"var(--text-muted)"}}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginBottom:28}}>
+                <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:16}}>Recent Activity</p>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {activityFeed.map((a,i)=>(
+                    <div key={i} className="profile-activity-row">
+                      <span style={{fontSize:20,flexShrink:0}}>{a.icon}</span>
+                      <div style={{flex:1,minWidth:0}}>
+                        <p style={{fontSize:13,color:"var(--cream)",marginBottom:2}}>{a.label}</p>
+                        <p style={{fontSize:11,color:"var(--text-muted)"}}>{a.time}</p>
+                      </div>
+                      {a.status&&<span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,background:a.status==="Pending"?"rgba(232,160,48,.12)":a.status==="Replied"?"rgba(72,199,142,.12)":"rgba(99,179,237,.12)",color:a.status==="Pending"?"var(--gold)":a.status==="Replied"?"#48C78E":"#63B3ED",border:`1px solid ${a.status==="Pending"?"rgba(232,160,48,.3)":a.status==="Replied"?"rgba(72,199,142,.3)":"rgba(99,179,237,.3)"}`,whiteSpace:"nowrap"}}>{a.status}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div style={{padding:22,borderRadius:14,background:"linear-gradient(145deg,#140E2E,#1C1542)",border:"1px solid var(--border-light)"}}>
+                <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:14}}>Quick Actions</p>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[{label:"Book Consultation",action:()=>setPage("Booking"),icon:"📅"},{label:"Get a Free Quote",action:()=>setPage("Contact"),icon:"📋"},{label:"Browse Projects",action:()=>setPage("Projects"),icon:"🏗️"},{label:"View Pricing Plans",action:()=>setPage("Pricing"),icon:"💰"}].map((a,i)=>(
+                    <button key={i} onClick={a.action} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:8,background:"var(--navy-700)",border:"1px solid var(--border-light)",color:"var(--cream)",fontSize:13,cursor:"pointer",transition:"all .2s",textAlign:"left"}}
+                      onMouseOver={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.color="var(--gold)"}}
+                      onMouseOut={e=>{e.currentTarget.style.borderColor="var(--border-light)";e.currentTarget.style.color="var(--cream)"}}>
+                      <span style={{fontSize:16}}>{a.icon}</span> {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{padding:22,borderRadius:14,background:"linear-gradient(135deg,rgba(232,160,48,.1),rgba(155,93,229,.1))",border:"1px solid rgba(232,160,48,.3)"}}>
+                <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:8}}>Current Plan</p>
+                <p style={{fontSize:24,fontWeight:800,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",marginBottom:4}}>{user.plan}</p>
+                <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>{user.plan==="Essential"?"₹1,500 / sq ft":user.plan==="Premium"?"₹2,500 / sq ft":"₹4,000 / sq ft"}</p>
+                <button onClick={()=>setPage("Pricing")} className="gold-btn" style={{width:"100%",padding:"10px",borderRadius:8,fontSize:11,letterSpacing:".08em",textTransform:"uppercase"}}>Upgrade Plan →</button>
+              </div>
+            </div>
+          </div>
         )}
-        {!user && (
-          <button onClick={()=>setPage("Contact")} className="outline-btn" style={{padding:"8px 18px",borderRadius:6,fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase"}}>Get Quote</button>
+        {activeTab==="inquiries"&&(
+          <div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800}}>Your Service Requests</h3>
+              <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"10px 22px",borderRadius:8,fontSize:11,letterSpacing:".08em",textTransform:"uppercase"}}>New Inquiry +</button>
+            </div>
+            <div style={{textAlign:"center",padding:"80px 0"}}>
+              <p style={{fontSize:48,marginBottom:16}}>📋</p>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:8}}>No inquiries yet</h3>
+              <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Get started by submitting a project inquiry.</p>
+              <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase"}}>Submit Inquiry →</button>
+            </div>
+          </div>
+        )}
+        {activeTab==="saved"&&(
+          <div>
+            <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800,marginBottom:24}}>Your Favourites</h3>
+            <div style={{textAlign:"center",padding:"80px 0"}}>
+              <p style={{fontSize:48,marginBottom:16}}>❤️</p>
+              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:8}}>No saved projects yet</h3>
+              <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Browse our portfolio and save projects you like.</p>
+              <button onClick={()=>setPage("Projects")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase"}}>Browse Projects →</button>
+            </div>
+          </div>
+        )}
+        {activeTab==="settings"&&(
+          <div style={{maxWidth:680}}>
+            <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800,marginBottom:24}}>Profile Information</h3>
+            {saved&&<div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:10,background:"rgba(72,199,142,.1)",border:"1px solid rgba(72,199,142,.3)",color:"#48C78E",fontSize:13,fontWeight:600,marginBottom:20}}><CheckCircleIcon size={16} color="#48C78E"/> Profile updated successfully!</div>}
+            <div style={{padding:28,borderRadius:16,background:"linear-gradient(145deg,#140E2E,#1C1542)",border:"1px solid var(--border-light)"}}>
+              <div style={{display:"flex",flexDirection:"column",gap:16}}>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name</label>
+                    {editing?<input value={editForm.name} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Your name"/>:<div style={{padding:"12px 16px",background:"var(--navy-800)",borderRadius:6,fontSize:14,color:"var(--cream)",border:"1px solid var(--border)"}}>{user.name}</div>}</div>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email</label>
+                    <div style={{padding:"12px 16px",background:"var(--navy-800)",borderRadius:6,fontSize:14,color:"var(--text-muted)",border:"1px solid var(--border)",display:"flex",alignItems:"center",gap:8}}><LockIcon size={13} color="var(--text-muted)"/> {user.email}</div></div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
+                    {editing?<input value={editForm.phone} onChange={e=>setEditForm(p=>({...p,phone:e.target.value}))} placeholder="+91 98765 43210"/>:<div style={{padding:"12px 16px",background:"var(--navy-800)",borderRadius:6,fontSize:14,color:"var(--cream)",border:"1px solid var(--border)"}}>{user.phone}</div>}</div>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Location</label>
+                    {editing?<input value={editForm.location} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} placeholder="City, State"/>:<div style={{padding:"12px 16px",background:"var(--navy-800)",borderRadius:6,fontSize:14,color:"var(--cream)",border:"1px solid var(--border)"}}>{user.location}</div>}</div>
+                </div>
+              </div>
+              {editing?<div style={{display:"flex",gap:12,marginTop:20}}><button onClick={handleSave} className="gold-btn" style={{padding:"11px 28px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase"}}>Save Changes</button><button onClick={()=>{setEditing(false);setEditForm({name:user.name,phone:user.phone,location:user.location});}} className="outline-btn" style={{padding:"11px 24px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase"}}>Cancel</button></div>:<button onClick={()=>setEditing(true)} className="edit-btn" style={{marginTop:20}}><EditIcon size={13}/> Edit Information</button>}
+            </div>
+          </div>
         )}
       </div>
     </div>
-  </nav>
+  );
+};
+
+/* ─── Navbar ──────────────────────────────────────────────────────────────── */
+const Navbar = ({ page, setPage, scrolled, user, onOpenAuth, onLogout }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  return (
+    <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:50,transition:"all .3s",background:scrolled?"rgba(7,5,15,0.97)":"rgba(7,5,15,0.18)",backdropFilter:"blur(16px)",borderBottom:scrolled?"1px solid var(--border)":"1px solid transparent",boxShadow:scrolled?"0 2px 24px rgba(0,0,0,.6)":"none"}}>
+      <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px",display:"flex",alignItems:"center",justifyContent:"space-between",height:64}}>
+        <button onClick={()=>setPage("Home")} style={{background:"none",border:"none",cursor:"pointer"}}>
+          <span style={{fontSize:22,fontWeight:800,letterSpacing:"0.1em",fontFamily:"'Barlow Condensed',sans-serif"}}><span style={{color:"var(--gold)"}}>BUILD</span><span style={{color:"var(--cream)"}}>CORE</span></span>
+        </button>
+        <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+          {/* Booking is removed from navbar links — only shown via "Book Now" CTA button */}
+          {data.navbar.links.map(l=>(
+            <button key={l} onClick={()=>setPage(l)} className={`nav-link ${page===l?"active":""}`}>{l}</button>
+          ))}
+          <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
+            style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:6,background:"#25D366",color:"#fff",textDecoration:"none",fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"}}>
+            <WhatsAppSVG size={13}/> WhatsApp
+          </a>
+          {user?(
+            <div style={{position:"relative"}}>
+              <button onClick={()=>setDropdownOpen(v=>!v)} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 14px 6px 8px",borderRadius:8,background:"linear-gradient(135deg,rgba(232,160,48,.12),rgba(155,93,229,.12))",border:"1.5px solid rgba(232,160,48,.35)",cursor:"pointer"}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#C87820,#F5C060)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:11,color:"var(--navy-900)"}}>{user.avatar}</div>
+                <span style={{fontSize:12,fontWeight:700,color:"var(--cream)",maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name.split(" ")[0]}</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              {dropdownOpen&&<UserDropdown user={user} onProfile={()=>setPage("Profile")} onLogout={onLogout} onClose={()=>setDropdownOpen(false)}/>}
+            </div>
+          ):(
+            <button onClick={onOpenAuth} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:6,background:"linear-gradient(135deg,rgba(232,160,48,.12),rgba(155,93,229,.12))",border:"1.5px solid rgba(232,160,48,.35)",color:"var(--gold)",fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer"}}>
+              <UserIcon size={14} color="var(--gold)"/> Sign In
+            </button>
+          )}
+          {/* Book Now CTA — the primary entry point to the booking page */}
+          <button onClick={()=>setPage("Booking")} className="gold-btn" style={{padding:"8px 18px",borderRadius:6,fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase"}}>Book Now</button>
+        </div>
+      </div>
+    </nav>
   );
 };
 
@@ -533,9 +1222,7 @@ const Footer=({setPage})=>(
   <footer style={{background:"linear-gradient(145deg,#0A071A 0%,#140B30 60%,#07050F 100%)",borderTop:"1px solid var(--border-light)"}}>
     <div style={{maxWidth:1280,margin:"0 auto",padding:"64px 24px",display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:48}}>
       <div>
-        <p style={{fontSize:28,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.1em",marginBottom:8}}>
-          BUILD<span style={{color:"var(--cream)"}}>CORE</span>
-        </p>
+        <p style={{fontSize:28,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.1em",marginBottom:8}}>BUILD<span style={{color:"var(--cream)"}}>CORE</span></p>
         <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:16}}>{data.footer.tagline}</p>
         <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:6}}>📍 {data.contact.address}</p>
         <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:6}}>📞 {data.contact.phone}</p>
@@ -547,8 +1234,7 @@ const Footer=({setPage})=>(
         <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"var(--cream)",marginBottom:20}}>Pages</p>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           {data.navbar.links.map(l=>(
-            <button key={l} onClick={()=>setPage(l)} style={{fontSize:13,color:"var(--text-muted)",background:"none",border:"none",cursor:"pointer",textAlign:"left",transition:"color .2s"}}
-              onMouseOver={e=>e.currentTarget.style.color="var(--gold)"} onMouseOut={e=>e.currentTarget.style.color="var(--text-muted)"}>{l}</button>
+            <button key={l} onClick={()=>setPage(l)} style={{fontSize:13,color:"var(--text-muted)",background:"none",border:"none",cursor:"pointer",textAlign:"left"}} onMouseOver={e=>e.currentTarget.style.color="var(--gold)"} onMouseOut={e=>e.currentTarget.style.color="var(--text-muted)"}>{l}</button>
           ))}
         </div>
       </div>
@@ -557,8 +1243,7 @@ const Footer=({setPage})=>(
         <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:24}}>
           {data.footer.links.map(l=><span key={l} style={{fontSize:13,color:"var(--text-muted)",cursor:"pointer"}}>{l}</span>)}
         </div>
-        <a href="https://maps.google.com/?q=Brigade+Road+Bangalore" target="_blank" rel="noopener noreferrer"
-          style={{display:"block",padding:16,borderRadius:10,background:"var(--navy-700)",border:"1px solid var(--border-light)",textDecoration:"none"}}>
+        <a href="https://maps.google.com/?q=Brigade+Road+Bangalore" target="_blank" rel="noopener noreferrer" style={{display:"block",padding:16,borderRadius:10,background:"var(--navy-700)",border:"1px solid var(--border-light)",textDecoration:"none"}}>
           <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--gold)",marginBottom:4}}>📍 Find Us</p>
           <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:8}}>Brigade Road, Bangalore</p>
           <p style={{fontSize:12,fontWeight:700,color:"var(--gold)"}}>Open in Google Maps →</p>
@@ -617,9 +1302,7 @@ const FollowUsSection=()=>{
         <div style={{textAlign:"center",marginBottom:60}}>
           <SectionLabel>Stay Connected</SectionLabel>
           <SectionHeading center>Follow Our Journey</SectionHeading>
-          <p style={{fontSize:14,color:"var(--text-muted)",maxWidth:480,margin:"0 auto 40px"}}>
-            Behind-the-scenes construction updates, design inspiration, and project stories — follow us for daily content.
-          </p>
+          <p style={{fontSize:14,color:"var(--text-muted)",maxWidth:480,margin:"0 auto 40px"}}>Behind-the-scenes construction updates, design inspiration, and project stories.</p>
           <div style={{display:"flex",justifyContent:"center",gap:28,flexWrap:"wrap"}}>
             {followIcons.map((fi,i)=>(
               <a key={i} href={fi.url} target="_blank" rel="noopener noreferrer" className="follow-icon-btn">
@@ -664,592 +1347,12 @@ const FollowUsSection=()=>{
             ))}
           </div>
         </div>
-        <div style={{textAlign:"center"}}>
-          <a href={data.social.instagram} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,fontSize:13,fontWeight:700,color:"#E1306C",textDecoration:"none"}}>
-            <InstagramIcon size={16} color="#E1306C"/> @buildcore.in — Follow on Instagram
-          </a>
-        </div>
       </div>
     </section>
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ─── LOGIN / REGISTER PAGE ───────────────────────────────────────────────
-   ═══════════════════════════════════════════════════════════════════════════ */
-const LoginPage = ({ setPage }) => {
-  const { login } = useAuth();
-  const [tab, setTab] = useState("login"); // "login" | "register"
-  const [showPwd, setShowPwd] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  // Login state
-  const [loginForm, setLoginForm] = useState({ email:"", password:"" });
-
-  // Register state
-  const [regForm, setRegForm] = useState({ name:"", email:"", phone:"", city:"", password:"", confirm:"" });
-
-  // Password strength
-  const pwStrength = (pw) => {
-    let s = 0;
-    if (pw.length >= 8) s++;
-    if (/[A-Z]/.test(pw)) s++;
-    if (/[0-9]/.test(pw)) s++;
-    if (/[^A-Za-z0-9]/.test(pw)) s++;
-    return s; // 0-4
-  };
-  const strengthLabel = ["Weak","Fair","Good","Strong"];
-  const strengthColor = ["#EF4444","#F59E0B","#3B82F6","#22C55E"];
-  const strength = pwStrength(regForm.password);
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setError("");
-    // Simulate auth — in production connect to your backend
-    const stored = (() => { try { return JSON.parse(localStorage.getItem("buildcore_users") || "[]"); } catch { return []; } })();
-    const found = stored.find(u => u.email === loginForm.email && u.password === loginForm.password);
-    if (!found) { setError("Incorrect email or password."); return; }
-    login({ name: found.name, email: found.email, phone: found.phone, city: found.city, joinDate: found.joinDate });
-    setPage("Profile");
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    setError("");
-    if (regForm.password !== regForm.confirm) { setError("Passwords do not match."); return; }
-    if (regForm.password.length < 6) { setError("Password must be at least 6 characters."); return; }
-    const stored = (() => { try { return JSON.parse(localStorage.getItem("buildcore_users") || "[]"); } catch { return []; } })();
-    if (stored.find(u => u.email === regForm.email)) { setError("An account with this email already exists."); return; }
-    const newUser = { name: regForm.name, email: regForm.email, phone: regForm.phone, city: regForm.city, password: regForm.password, joinDate: new Date().toLocaleDateString("en-IN", { month:"long", year:"numeric" }) };
-    stored.push(newUser);
-    try { localStorage.setItem("buildcore_users", JSON.stringify(stored)); } catch {}
-    login({ name: newUser.name, email: newUser.email, phone: newUser.phone, city: newUser.city, joinDate: newUser.joinDate });
-    setSuccess("Account created! Welcome to BuildCore.");
-    setTimeout(() => setPage("Profile"), 1200);
-  };
-
-  return (
-    <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F 0%,#0F0A20 30%,#1A0D3A 65%,#07050F 100%)"}}>
-      {/* Hero */}
-      <section style={{position:"relative",padding:"80px 0 0",overflow:"hidden"}}>
-        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
-          <img src={IMGS.heroSlides[2]} alt="bg" style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.18}}/>
-          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(7,5,15,0.6),var(--navy-900))"}}/>
-        </div>
-        <div style={{position:"relative",maxWidth:520,margin:"0 auto",padding:"0 24px",textAlign:"center",zIndex:2,paddingBottom:40}}>
-          <p style={{fontSize:36,fontWeight:800,letterSpacing:"0.1em",fontFamily:"'Barlow Condensed',sans-serif",color:"var(--gold)",lineHeight:1,marginBottom:6}}>
-            BUILD<span style={{color:"var(--cream)"}}>CORE</span>
-          </p>
-          <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:0}}>Your trusted construction partner</p>
-        </div>
-      </section>
-
-      {/* Card */}
-      <div style={{maxWidth:480,margin:"0 auto",padding:"0 24px 80px"}}>
-        <div style={{padding:40,borderRadius:20,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",boxShadow:"0 32px 80px rgba(0,0,0,.5)"}}>
-
-          {/* Tabs */}
-          <div style={{display:"flex",gap:8,marginBottom:32,background:"var(--navy-800)",padding:4,borderRadius:10}}>
-            {["login","register"].map(t=>(
-              <button key={t} onClick={()=>{setTab(t);setError("");setSuccess("");}}
-                style={{flex:1,padding:"10px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",transition:"all 0.2s",border:"none",
-                  background:tab===t?"linear-gradient(135deg,#7C3AED,var(--gold))":"transparent",
-                  color:tab===t?"#fff":"var(--text-muted)"}}>
-                {t==="login"?"Sign In":"Create Account"}
-              </button>
-            ))}
-          </div>
-
-          {error && (
-            <div style={{padding:"12px 16px",borderRadius:8,background:"rgba(220,38,38,0.12)",border:"1px solid rgba(220,38,38,0.3)",marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:16}}>⚠️</span>
-              <p style={{fontSize:13,color:"#FC8181",margin:0}}>{error}</p>
-            </div>
-          )}
-          {success && (
-            <div style={{padding:"12px 16px",borderRadius:8,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.3)",marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
-              <CheckCircleIcon size={16} color="#22C55E"/>
-              <p style={{fontSize:13,color:"#22C55E",margin:0}}>{success}</p>
-            </div>
-          )}
-
-          {tab === "login" ? (
-            <form onSubmit={handleLogin} style={{display:"flex",flexDirection:"column",gap:0}}>
-              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:24}}>Welcome back</h3>
-              <div className="auth-input-group">
-                <label>Email address</label>
-                <div style={{position:"relative"}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={16} color="var(--text-muted)"/></span>
-                  <input type="email" required placeholder="you@email.com" value={loginForm.email} onChange={e=>setLoginForm(p=>({...p,email:e.target.value}))} style={{paddingLeft:40}}/>
-                </div>
-              </div>
-              <div className="auth-input-group">
-                <label>Password</label>
-                <div style={{position:"relative"}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={16} color="var(--text-muted)"/></span>
-                  <input type={showPwd?"text":"password"} required placeholder="Enter your password" value={loginForm.password} onChange={e=>setLoginForm(p=>({...p,password:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
-                  <button type="button" onClick={()=>setShowPwd(o=>!o)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:0}}>
-                    {showPwd?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}
-                  </button>
-                </div>
-              </div>
-              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:20}}>
-                <button type="button" style={{background:"none",border:"none",cursor:"pointer",fontSize:12,color:"var(--gold)",fontWeight:600}}>Forgot password?</button>
-              </div>
-              <button type="submit" className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:16}}>Sign In →</button>
-              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I%20need%20help%20with%20my%20account.`} target="_blank" rel="noopener noreferrer"
-                style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"12px",borderRadius:8,fontSize:12,fontWeight:700,background:"rgba(37,211,102,.1)",color:"#25D366",border:"1px solid rgba(37,211,102,.3)",textDecoration:"none"}}>
-                <WhatsAppSVG size={14}/> Need help? Chat on WhatsApp
-              </a>
-              <p style={{fontSize:12,color:"var(--text-muted)",textAlign:"center",marginTop:20}}>
-                Don't have an account?{" "}
-                <button type="button" onClick={()=>setTab("register")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gold)",fontWeight:700,fontSize:12}}>Create one →</button>
-              </p>
-            </form>
-          ) : (
-            <form onSubmit={handleRegister} style={{display:"flex",flexDirection:"column",gap:0}}>
-              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:24}}>Create your account</h3>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
-                <div>
-                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name *</label>
-                  <div style={{position:"relative"}}>
-                    <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><UserIcon size={15} color="var(--text-muted)"/></span>
-                    <input required placeholder="Ravi Kumar" value={regForm.name} onChange={e=>setRegForm(p=>({...p,name:e.target.value}))} style={{paddingLeft:36}}/>
-                  </div>
-                </div>
-                <div>
-                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
-                  <div style={{position:"relative"}}>
-                    <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><PhoneIcon size={15} color="var(--text-muted)"/></span>
-                    <input placeholder="+91 98765 43210" value={regForm.phone} onChange={e=>setRegForm(p=>({...p,phone:e.target.value}))} style={{paddingLeft:36}}/>
-                  </div>
-                </div>
-              </div>
-              <div className="auth-input-group">
-                <label>Email address *</label>
-                <div style={{position:"relative"}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={16} color="var(--text-muted)"/></span>
-                  <input type="email" required placeholder="you@email.com" value={regForm.email} onChange={e=>setRegForm(p=>({...p,email:e.target.value}))} style={{paddingLeft:40}}/>
-                </div>
-              </div>
-              <div className="auth-input-group">
-                <label>City</label>
-                <div style={{position:"relative"}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MapPinIcon size={16} color="var(--text-muted)"/></span>
-                  <input placeholder="Bangalore" value={regForm.city} onChange={e=>setRegForm(p=>({...p,city:e.target.value}))} style={{paddingLeft:40}}/>
-                </div>
-              </div>
-              <div className="auth-input-group">
-                <label>Password *</label>
-                <div style={{position:"relative"}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={16} color="var(--text-muted)"/></span>
-                  <input type={showPwd?"text":"password"} required placeholder="Min. 6 characters" value={regForm.password} onChange={e=>setRegForm(p=>({...p,password:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
-                  <button type="button" onClick={()=>setShowPwd(o=>!o)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:0}}>
-                    {showPwd?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}
-                  </button>
-                </div>
-                {regForm.password && (
-                  <div style={{marginTop:8}}>
-                    <div style={{display:"flex",gap:4,marginBottom:4}}>
-                      {[0,1,2,3].map(i=>(
-                        <div key={i} className="strength-bar" style={{flex:1,background:i<strength?strengthColor[strength-1]:"var(--border-light)"}}/>
-                      ))}
-                    </div>
-                    <p style={{fontSize:11,color:strengthColor[strength-1]||"var(--text-muted)",fontWeight:600}}>{regForm.password ? (strengthLabel[strength-1]||"Very Weak") : ""}</p>
-                  </div>
-                )}
-              </div>
-              <div className="auth-input-group">
-                <label>Confirm Password *</label>
-                <div style={{position:"relative"}}>
-                  <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><LockIcon size={16} color="var(--text-muted)"/></span>
-                  <input type={showConfirm?"text":"password"} required placeholder="Repeat password" value={regForm.confirm} onChange={e=>setRegForm(p=>({...p,confirm:e.target.value}))} style={{paddingLeft:40,paddingRight:44}}/>
-                  <button type="button" onClick={()=>setShowConfirm(o=>!o)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"var(--text-muted)",padding:0}}>
-                    {showConfirm?<EyeOffIcon size={16}/>:<EyeIcon size={16}/>}
-                  </button>
-                </div>
-                {regForm.confirm && regForm.password !== regForm.confirm && (
-                  <p style={{fontSize:11,color:"#FC8181",marginTop:4}}>Passwords do not match</p>
-                )}
-              </div>
-              <p style={{fontSize:11,color:"var(--text-muted)",marginBottom:16,lineHeight:1.5}}>By creating an account you agree to our <span style={{color:"var(--gold)",cursor:"pointer"}}>Terms of Service</span> and <span style={{color:"var(--gold)",cursor:"pointer"}}>Privacy Policy</span>.</p>
-              <button type="submit" className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:12}}>Create Account →</button>
-              <p style={{fontSize:12,color:"var(--text-muted)",textAlign:"center",marginTop:8}}>
-                Already have an account?{" "}
-                <button type="button" onClick={()=>setTab("login")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gold)",fontWeight:700,fontSize:12}}>Sign in →</button>
-              </p>
-            </form>
-          )}
-        </div>
-
-        {/* Trust badges */}
-        <div style={{display:"flex",justifyContent:"center",gap:24,marginTop:24,flexWrap:"wrap"}}>
-          {[{icon:"🔒",text:"SSL Secured"},{"icon":"🛡️",text:"Privacy Protected"},{icon:"📱",text:"WhatsApp Support"}].map((b,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"var(--text-muted)"}}>
-              <span>{b.icon}</span>{b.text}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   ─── PROFILE PAGE ────────────────────────────────────────────────────────
-   ═══════════════════════════════════════════════════════════════════════════ */
-const ProfilePage = ({ setPage }) => {
-  const { user, logout, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState("overview");
-  const [editMode, setEditMode] = useState(false);
-  const [form, setForm] = useState({ name: user?.name||"", phone: user?.phone||"", city: user?.city||"" });
-  const [saved, setSaved] = useState(false);
-  const [notifications, setNotifications] = useState({ projectUpdates:true, promotions:false, newsletter:true, whatsapp:true });
-
-  if (!user) { setPage("Login"); return null; }
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    updateUser({ name: form.name, phone: form.phone, city: form.city });
-    setEditMode(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
-
-  const savedProjects = data.projects.slice(0, 3); // simulated saved projects
-
-  const tabs = [
-    { id:"overview", label:"Overview",      icon:<UserIcon size={15}/> },
-    { id:"projects", label:"Saved Projects",icon:<HeartIcon size={15}/> },
-    { id:"security", label:"Security",      icon:<ShieldIcon size={15}/> },
-    { id:"notifs",   label:"Notifications", icon:<BellIcon size={15}/> },
-  ];
-
-  return (
-    <div style={{paddingTop:64,minHeight:"100vh",background:"linear-gradient(160deg,#07050F 0%,#0F0A20 30%,#1A0D3A 65%,#07050F 100%)"}}>
-      {/* Profile Hero */}
-      <section style={{position:"relative",padding:"64px 0 0",overflow:"hidden"}}>
-        <div style={{position:"absolute",inset:0}}>
-          <img src={IMGS.teamHero} alt="profile bg" style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.15}}/>
-          <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(7,5,15,0.5),var(--navy-900))"}}/>
-        </div>
-        <div style={{position:"relative",maxWidth:1100,margin:"0 auto",padding:"0 24px 0",zIndex:2}}>
-          <div style={{display:"flex",alignItems:"flex-end",gap:24,paddingBottom:0}}>
-            {/* Avatar */}
-            <div style={{width:88,height:88,borderRadius:"50%",background:"linear-gradient(135deg,#7C3AED,var(--gold))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,fontWeight:700,color:"#fff",border:"4px solid var(--navy-900)",flexShrink:0}}>
-              {getInitials(user.name)}
-            </div>
-            <div style={{flex:1,paddingBottom:16}}>
-              <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(1.8rem,4vw,3rem)",fontWeight:800,lineHeight:1.05,marginBottom:4}}>{user.name}</h1>
-              <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-                <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><MailIcon size={13}/>{user.email}</span>
-                {user.phone && <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><PhoneIcon size={13}/>{user.phone}</span>}
-                {user.city && <span style={{fontSize:12,color:"var(--text-muted)",display:"flex",alignItems:"center",gap:5}}><MapPinIcon size={13}/>{user.city}</span>}
-                {user.joinDate && <span style={{fontSize:12,color:"var(--text-muted)"}}>Member since {user.joinDate}</span>}
-              </div>
-            </div>
-            <div style={{paddingBottom:16,display:"flex",gap:10,flexShrink:0}}>
-              <button onClick={()=>setEditMode(true)} className="outline-btn" style={{padding:"8px 18px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
-                ✏️ Edit Profile
-              </button>
-              <button onClick={()=>{logout();setPage("Home");}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 18px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"rgba(220,38,38,0.12)",border:"1px solid rgba(220,38,38,0.3)",color:"#FC8181",cursor:"pointer"}}>
-                <LogOutIcon size={14} color="#FC8181"/> Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Tabs */}
-      <div style={{background:"rgba(7,5,15,0.85)",backdropFilter:"blur(12px)",borderBottom:"1px solid var(--border-light)",position:"sticky",top:64,zIndex:30}}>
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px",display:"flex",gap:4}}>
-          {tabs.map(t=>(
-            <button key={t.id} onClick={()=>setActiveTab(t.id)}
-              style={{display:"flex",alignItems:"center",gap:7,padding:"16px 18px",fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",cursor:"pointer",border:"none",background:"transparent",
-                color:activeTab===t.id?"var(--gold)":"var(--text-muted)",
-                borderBottom:activeTab===t.id?"2px solid var(--gold)":"2px solid transparent",
-                transition:"all 0.2s"}}>
-              {t.icon}{t.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 24px 80px"}}>
-
-        {/* ── Overview Tab ── */}
-        {activeTab==="overview" && (
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
-            {/* Quick stats */}
-            <div style={{gridColumn:"1/-1",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>
-              {[
-                {label:"Saved Projects",value:"3",icon:"❤️"},
-                {label:"Quotes Requested",value:"1",icon:"📋"},
-                {label:"Projects Viewed",value:"6",icon:"👁️"},
-                {label:"Account Status",value:"Active",icon:"✅"},
-              ].map((s,i)=>(
-                <div key={i} style={{padding:"20px",borderRadius:12,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",textAlign:"center"}}>
-                  <p style={{fontSize:22,marginBottom:4}}>{s.icon}</p>
-                  <p style={{fontSize:24,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1}}>{s.value}</p>
-                  <p style={{fontSize:11,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginTop:4}}>{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Profile info card */}
-            <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
-                <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800}}>Personal Information</h3>
-                <button onClick={()=>setEditMode(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--gold)",fontSize:12,fontWeight:700}}>Edit →</button>
-              </div>
-              {[
-                {label:"Full Name",value:user.name,icon:<UserIcon size={14}/>},
-                {label:"Email",value:user.email,icon:<MailIcon size={14}/>},
-                {label:"Phone",value:user.phone||"Not added",icon:<PhoneIcon size={14}/>},
-                {label:"City",value:user.city||"Not added",icon:<MapPinIcon size={14}/>},
-              ].map((f,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:"1px solid var(--border)"}}>
-                  <span style={{color:"var(--gold)",flexShrink:0}}>{f.icon}</span>
-                  <div>
-                    <p style={{fontSize:10,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:1}}>{f.label}</p>
-                    <p style={{fontSize:14,color:f.value.includes("Not")?"var(--text-muted)":"var(--cream)",fontWeight:500}}>{f.value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Recent activity */}
-            <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
-              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:20}}>Recent Activity</h3>
-              {[
-                {icon:"❤️",text:"Saved Whitefield Luxury Villas",time:"2 days ago"},
-                {icon:"👁️",text:"Viewed TechHub Office Complex",time:"3 days ago"},
-                {icon:"📋",text:"Requested a quote",time:"5 days ago"},
-                {icon:"✅",text:"Account created",time:user.joinDate||"Recently"},
-              ].map((a,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
-                  <span style={{fontSize:16,flexShrink:0}}>{a.icon}</span>
-                  <div>
-                    <p style={{fontSize:13,color:"var(--cream)",marginBottom:2}}>{a.text}</p>
-                    <p style={{fontSize:11,color:"var(--text-muted)"}}>{a.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div style={{gridColumn:"1/-1",padding:36,borderRadius:16,border:"2px solid var(--gold)",background:"linear-gradient(145deg,#14102E,#1C1444)",textAlign:"center"}}>
-              <p style={{fontSize:26,marginBottom:8}}>🏗️</p>
-              <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:8}}>Ready to Start a Project?</h3>
-              <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Get a personalized quote tailored to your requirements. Free consultation in 48 hours.</p>
-              <div style={{display:"flex",justifyContent:"center",gap:12}}>
-                <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Get Free Quote →</button>
-                <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:8,padding:"12px 28px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={13}/> WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Saved Projects Tab ── */}
-        {activeTab==="projects" && (
-          <div>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
-              <div>
-                <SectionLabel>Saved</SectionLabel>
-                <SectionHeading>Your Saved Projects</SectionHeading>
-              </div>
-              <button onClick={()=>setPage("Projects")} className="outline-btn" style={{padding:"10px 20px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Browse All Projects →</button>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20}}>
-              {savedProjects.map((p,i)=>(
-                <div key={i} className="card-hover" style={{borderRadius:16,border:"1px solid var(--border-light)",overflow:"hidden",cursor:"pointer"}} onClick={()=>setPage("Projects")}>
-                  <div style={{position:"relative",height:200}}>
-                    <img src={IMGS.projects[i]} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(7,5,15,.75),transparent 55%)"}}/>
-                    <div style={{position:"absolute",top:12,right:12,width:32,height:32,borderRadius:"50%",background:"rgba(220,38,38,.85)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <HeartIcon size={14} color="#fff"/>
-                    </div>
-                    <div style={{position:"absolute",top:12,left:12,display:"flex",alignItems:"center",gap:5,fontSize:11,fontWeight:700,textTransform:"uppercase",padding:"4px 10px",borderRadius:20,background:"rgba(232,160,48,.92)",color:"var(--navy-900)"}}>
-                      {p.type}
-                    </div>
-                  </div>
-                  <div style={{padding:20}}>
-                    <h4 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,marginBottom:4}}>{p.title}</h4>
-                    <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:12}}>{p.location} · {p.year} · {p.area}</p>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                      <span style={{fontSize:16,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif"}}>{p.value}</span>
-                      <span style={{fontSize:12,fontWeight:700,color:"var(--gold)"}}>View →</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {savedProjects.length === 0 && (
-              <div style={{textAlign:"center",padding:"80px 0"}}>
-                <p style={{fontSize:48,marginBottom:16}}>❤️</p>
-                <p style={{fontSize:18,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,marginBottom:8}}>No saved projects yet</p>
-                <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Browse our portfolio and save projects you love.</p>
-                <button onClick={()=>setPage("Projects")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Browse Projects →</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Security Tab ── */}
-        {activeTab==="security" && (
-          <div style={{maxWidth:560}}>
-            <div style={{marginBottom:32}}>
-              <SectionLabel>Account Security</SectionLabel>
-              <SectionHeading>Security Settings</SectionHeading>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:16}}>
-              <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(232,160,48,.12)",border:"1px solid rgba(232,160,48,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <LockIcon size={18} color="var(--gold)"/>
-                    </div>
-                    <div>
-                      <p style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>Password</p>
-                      <p style={{fontSize:12,color:"var(--text-muted)"}}>Last changed: recently</p>
-                    </div>
-                  </div>
-                  <button className="outline-btn" style={{padding:"6px 14px",borderRadius:6,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase"}}>Change</button>
-                </div>
-              </div>
-              <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(34,197,94,.1)",border:"1px solid rgba(34,197,94,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <MailIcon size={18} color="#22C55E"/>
-                    </div>
-                    <div>
-                      <p style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>Email Verified</p>
-                      <p style={{fontSize:12,color:"#22C55E",display:"flex",alignItems:"center",gap:4}}><CheckCircleIcon size={12} color="#22C55E"/> {user.email}</p>
-                    </div>
-                  </div>
-                  <span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:"rgba(34,197,94,.12)",color:"#22C55E",border:"1px solid rgba(34,197,94,.3)"}}>Verified</span>
-                </div>
-              </div>
-              <div style={{padding:24,borderRadius:14,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(232,160,48,.12)",border:"1px solid rgba(232,160,48,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <ShieldIcon size={18} color="var(--gold)"/>
-                    </div>
-                    <div>
-                      <p style={{fontSize:14,fontWeight:700,color:"var(--cream)"}}>Two-Factor Authentication</p>
-                      <p style={{fontSize:12,color:"var(--text-muted)"}}>Add an extra layer of security</p>
-                    </div>
-                  </div>
-                  <span style={{fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:"rgba(232,160,48,.1)",color:"var(--gold)",border:"1px solid rgba(232,160,48,.25)"}}>Coming Soon</span>
-                </div>
-              </div>
-              <div style={{padding:20,borderRadius:14,border:"1px solid rgba(220,38,38,0.25)",background:"rgba(220,38,38,0.05)",marginTop:8}}>
-                <p style={{fontSize:13,fontWeight:700,color:"#FC8181",marginBottom:6}}>Danger Zone</p>
-                <p style={{fontSize:12,color:"var(--text-muted)",marginBottom:14}}>Permanently delete your account and all associated data.</p>
-                <button style={{padding:"8px 18px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"transparent",border:"1px solid rgba(220,38,38,0.4)",color:"#FC8181",cursor:"pointer"}}>Delete Account</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Notifications Tab ── */}
-        {activeTab==="notifs" && (
-          <div style={{maxWidth:560}}>
-            <div style={{marginBottom:32}}>
-              <SectionLabel>Preferences</SectionLabel>
-              <SectionHeading>Notification Settings</SectionHeading>
-            </div>
-            <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
-              {[
-                {key:"projectUpdates",label:"Project Updates",desc:"Get notified when your project milestones are reached"},
-                {key:"promotions",label:"Offers & Promotions",desc:"Special pricing and seasonal construction offers"},
-                {key:"newsletter",label:"BuildCore Newsletter",desc:"Monthly insights on construction trends and tips"},
-                {key:"whatsapp",label:"WhatsApp Notifications",desc:"Receive updates directly on WhatsApp"},
-              ].map((n,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 0",borderBottom:i<3?"1px solid var(--border)":"none"}}>
-                  <div>
-                    <p style={{fontSize:14,fontWeight:700,color:"var(--cream)",marginBottom:3}}>{n.label}</p>
-                    <p style={{fontSize:12,color:"var(--text-muted)"}}>{n.desc}</p>
-                  </div>
-                  <button
-                    onClick={()=>setNotifications(p=>({...p,[n.key]:!p[n.key]}))}
-                    style={{width:44,height:24,borderRadius:12,border:"none",cursor:"pointer",transition:"all 0.25s",padding:2,flexShrink:0,
-                      background:notifications[n.key]?"var(--gold)":"var(--border-light)"}}>
-                    <div style={{width:20,height:20,borderRadius:"50%",background:"white",transition:"transform .25s",
-                      transform:notifications[n.key]?"translateX(20px)":"translateX(0)"}}/>
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button className="gold-btn" style={{marginTop:20,padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Save Preferences →</button>
-          </div>
-        )}
-      </div>
-
-      {/* Edit Profile Modal */}
-      {editMode && (
-        <div className="modal-overlay" onClick={()=>setEditMode(false)}>
-          <div className="modal-box" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
-            <div style={{padding:36}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:28}}>
-                <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800}}>Edit Profile</h3>
-                <button onClick={()=>setEditMode(false)} style={{background:"var(--navy-600)",border:"1px solid var(--border-light)",color:"var(--cream)",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:14}}>✕</button>
-              </div>
-              {saved && (
-                <div style={{padding:"10px 16px",borderRadius:8,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,.3)",marginBottom:20,display:"flex",alignItems:"center",gap:8}}>
-                  <CheckCircleIcon size={16} color="#22C55E"/>
-                  <p style={{fontSize:13,color:"#22C55E",margin:0}}>Profile updated successfully!</p>
-                </div>
-              )}
-              <form onSubmit={handleSave} style={{display:"flex",flexDirection:"column",gap:16}}>
-                <div>
-                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name</label>
-                  <div style={{position:"relative"}}>
-                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><UserIcon size={16} color="var(--text-muted)"/></span>
-                    <input required value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} style={{paddingLeft:40}}/>
-                  </div>
-                </div>
-                <div>
-                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email</label>
-                  <div style={{position:"relative"}}>
-                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MailIcon size={16} color="var(--text-muted)"/></span>
-                    <input type="email" value={user.email} disabled style={{paddingLeft:40,opacity:0.5,cursor:"not-allowed"}}/>
-                  </div>
-                  <p style={{fontSize:11,color:"var(--text-muted)",marginTop:4}}>Email cannot be changed</p>
-                </div>
-                <div>
-                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
-                  <div style={{position:"relative"}}>
-                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><PhoneIcon size={16} color="var(--text-muted)"/></span>
-                    <input placeholder="+91 98765 43210" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} style={{paddingLeft:40}}/>
-                  </div>
-                </div>
-                <div>
-                  <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>City</label>
-                  <div style={{position:"relative"}}>
-                    <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}><MapPinIcon size={16} color="var(--text-muted)"/></span>
-                    <input placeholder="Bangalore" value={form.city} onChange={e=>setForm(p=>({...p,city:e.target.value}))} style={{paddingLeft:40}}/>
-                  </div>
-                </div>
-                <div style={{display:"flex",gap:12,marginTop:8}}>
-                  <button type="submit" className="gold-btn" style={{flex:1,padding:"13px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Save Changes →</button>
-                  <button type="button" onClick={()=>setEditMode(false)} className="outline-btn" style={{padding:"13px 20px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Cancel</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ─── Home Page ───────────────────────────────────────────────────────────── */
+/* ─── All Pages ───────────────────────────────────────────────────────────── */
 const HomePage=({setPage})=>{
   const [slide,setSlide]=useState(0);
   const total=IMGS.heroSlides.length;
@@ -1279,15 +1382,10 @@ const HomePage=({setPage})=>{
                 </div>
                 <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2.5rem,6vw,5rem)",fontWeight:800,lineHeight:1.04,marginBottom:24}}>{IMGS.heroCaptions[slide].heading}</h1>
               </div>
-              <p className="fade-up" style={{color:"rgba(240,238,255,0.82)",fontSize:17,lineHeight:1.7,maxWidth:520,marginBottom:36,animationDelay:"0.2s",opacity:0}}>
-                Trusted construction services for residential and commercial projects across India. We build with precision, pride, and purpose.
-              </p>
+              <p className="fade-up" style={{color:"rgba(240,238,255,0.82)",fontSize:17,lineHeight:1.7,maxWidth:520,marginBottom:36,animationDelay:"0.2s",opacity:0}}>Trusted construction services for residential and commercial projects across India.</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:14}}>
-                <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"14px 32px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>Get Free Quote</button>
-                <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
-                  style={{display:"flex",alignItems:"center",gap:8,padding:"14px 32px",borderRadius:8,fontSize:13,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"rgba(37,211,102,.14)",border:"1.5px solid #25D366",color:"#25D366",textDecoration:"none"}}>
-                  <WhatsAppSVG size={15}/> WhatsApp Us
-                </a>
+                <button onClick={()=>setPage("Booking")} className="gold-btn" style={{padding:"14px 32px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>Book Free Consultation</button>
+                <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:8,padding:"14px 32px",borderRadius:8,fontSize:13,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"rgba(37,211,102,.14)",border:"1.5px solid #25D366",color:"#25D366",textDecoration:"none"}}><WhatsAppSVG size={15}/> WhatsApp Us</a>
                 <button onClick={()=>setPage("Projects")} className="outline-btn" style={{padding:"14px 32px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>View Projects</button>
               </div>
             </div>
@@ -1309,41 +1407,37 @@ const HomePage=({setPage})=>{
           <div style={{textAlign:"center",marginBottom:60}}>
             <SectionLabel>Why BuildCore</SectionLabel>
             <SectionHeading center>Built Different. Built Better.</SectionHeading>
-            <p style={{fontSize:14,color:"var(--text-muted)",maxWidth:480,margin:"0 auto"}}>Every project we undertake is a commitment — to quality, to deadlines, and to the people who trust us.</p>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
             {data.home.features.map((f,i)=>(
               <div key={i} className="card-hover" style={{padding:32,borderRadius:16,border:"1px solid var(--border-light)"}}>
-                <FeatureIcon type={f.icon} />
+                <FeatureIcon type={f.icon}/>
                 <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:8}}>{f.title}</h3>
                 <p style={{fontSize:13,color:"var(--text-muted)",lineHeight:1.7}}>{f.description}</p>
               </div>
             ))}
           </div>
-          <div style={{textAlign:"center",marginTop:40}}>
-            <button onClick={()=>setPage("Why Us")} className="gold-btn" style={{padding:"12px 32px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>See Why 500+ Chose Us →</button>
+        </div>
+      </section>
+      <section style={{background:"linear-gradient(145deg,#110D28,#1C1244)",padding:"64px 0",borderTop:"1px solid var(--border-light)",borderBottom:"1px solid var(--border-light)"}}>
+        <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px",display:"grid",gridTemplateColumns:"1fr auto",gap:32,alignItems:"center"}}>
+          <div>
+            <p style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".12em",color:"var(--gold)",marginBottom:8}}>Free Consultation</p>
+            <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:800,marginBottom:8}}>Ready to start your project?</h3>
+            <p style={{fontSize:13,color:"var(--text-muted)"}}>Book a free 30–60 min consultation with one of our senior experts. No commitments required.</p>
+            <div style={{display:"flex",gap:16,marginTop:16,flexWrap:"wrap"}}>
+              {["✅ 100% Free","⚡ 48hr Confirmation","👤 Senior Consultant","📍 Online or In-Person"].map((t,i)=>(
+                <span key={i} style={{fontSize:11,color:"var(--text-soft)",fontWeight:600}}>{t}</span>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:12,flexShrink:0}}>
+            <button onClick={()=>setPage("Booking")} className="gold-btn" style={{padding:"14px 32px",borderRadius:8,fontSize:13,letterSpacing:".08em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Book Consultation →</button>
+            <button onClick={()=>setPage("Contact")} className="outline-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:".08em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Get a Quote</button>
           </div>
         </div>
       </section>
-      <section style={{background:"linear-gradient(145deg,#110D28 0%,#1C1244 60%,#0F0920 100%)",padding:"96px 0"}}>
-        <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px"}}>
-          <div style={{textAlign:"center",marginBottom:60}}>
-            <SectionLabel>Our Process</SectionLabel>
-            <SectionHeading center>How We Work</SectionHeading>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:20}}>
-            {data.home.process.map((p,i)=>(
-              <div key={i} className="card-hover" style={{textAlign:"center",padding:36,borderRadius:16,border:"1px solid var(--border-light)"}}>
-                <ProcessIcon type={p.iconType} />
-                <p style={{fontSize:13,fontWeight:700,letterSpacing:"0.1em",color:"var(--gold)",marginBottom:6,textTransform:"uppercase"}}>{p.step}</p>
-                <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:10}}>{p.title}</h3>
-                <p style={{fontSize:13,color:"var(--text-muted)",lineHeight:1.7}}>{p.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section style={{background:"linear-gradient(160deg,#07050F 0%,#0F0A22 50%,#160E30 100%)",padding:"96px 0"}}>
+      <section style={{background:"linear-gradient(160deg,#07050F,#0F0A22 50%,#160E30 100%)",padding:"96px 0"}}>
         <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px"}}>
           <div style={{textAlign:"center",marginBottom:60}}>
             <SectionLabel>Client Stories</SectionLabel>
@@ -1369,7 +1463,7 @@ const HomePage=({setPage})=>{
           <h2 style={{color:"var(--navy-900)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:800,marginBottom:16}}>Ready to Build Your Dream?</h2>
           <p style={{fontSize:15,color:"rgba(7,5,15,.78)",marginBottom:32}}>Get a free consultation and detailed quote within 48 hours. No obligations, just honest advice.</p>
           <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:16}}>
-            <button onClick={()=>setPage("Contact")} style={{padding:"14px 36px",borderRadius:8,fontWeight:800,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",background:"var(--navy-900)",color:"var(--gold)",border:"none",cursor:"pointer"}}>Get Free Quote</button>
+            <button onClick={()=>setPage("Booking")} style={{padding:"14px 36px",borderRadius:8,fontWeight:800,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",background:"var(--navy-900)",color:"var(--gold)",border:"none",cursor:"pointer"}}>Book Free Consultation</button>
             <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:8,padding:"14px 36px",borderRadius:8,fontWeight:800,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={15}/> WhatsApp Now</a>
           </div>
         </div>
@@ -1378,7 +1472,6 @@ const HomePage=({setPage})=>{
   );
 };
 
-/* ─── About Page ──────────────────────────────────────────────────────────── */
 const AboutPage=({setPage})=>(
   <div style={{paddingTop:64}}>
     <section style={{position:"relative",padding:"128px 0",overflow:"hidden"}}>
@@ -1435,28 +1528,15 @@ const AboutPage=({setPage})=>(
         </div>
       </div>
     </section>
-    <section style={{background:"linear-gradient(160deg,#07050F,#100826,#07050F)",padding:"64px 0"}}>
-      <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px",textAlign:"center"}}>
-        <SectionLabel>Our People</SectionLabel>
-        <SectionHeading center>200+ Experts Behind Every Project</SectionHeading>
-        <p style={{fontSize:14,color:"var(--text-muted)",maxWidth:420,margin:"0 auto 32px",lineHeight:1.7}}>From architects and engineers to project managers — meet the team that makes it happen.</p>
-        <div style={{display:"flex",justifyContent:"center",marginBottom:32}}>
-          {IMGS.team.slice(0,5).map((img,i)=><img key={i} src={img} alt="" style={{width:52,height:52,borderRadius:"50%",objectFit:"cover",objectPosition:"top",border:"3px solid var(--navy-900)",marginLeft:i?-10:0}}/>)}
-          <div style={{width:52,height:52,borderRadius:"50%",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",border:"3px solid var(--navy-900)",fontSize:11,fontWeight:700,color:"var(--navy-900)",marginLeft:-10}}>195+</div>
-        </div>
-        <button onClick={()=>setPage("Team")} className="gold-btn" style={{padding:"12px 32px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Meet the Leadership Team →</button>
-      </div>
-    </section>
   </div>
 );
 
-/* ─── Why Us Page ─────────────────────────────────────────────────────────── */
 const WhyUsPage=({setPage})=>{
-  const statIcons = {
-    build:  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="6" height="4"/><rect x="9" y="3" width="6" height="4"/><rect x="16" y="3" width="6" height="4"/><path d="M4 7v10M12 7v10M20 7v10M2 17h20"/></svg>,
-    money:  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
-    fast:   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-    shield: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
+  const statIcons={
+    build:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="6" height="4"/><rect x="9" y="3" width="6" height="4"/><rect x="16" y="3" width="6" height="4"/><path d="M4 7v10M12 7v10M20 7v10M2 17h20"/></svg>,
+    money:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+    fast:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+    shield:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
   };
   return(
     <div style={{paddingTop:64}}>
@@ -1489,7 +1569,7 @@ const WhyUsPage=({setPage})=>{
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
             {data.whyUs.pillars.map((p,i)=>(
               <div key={i} className="card-hover" style={{padding:32,borderRadius:16,border:"1px solid var(--border-light)"}}>
-                <WhyIcon type={p.iconType} />
+                <WhyIcon type={p.iconType}/>
                 <span style={{display:"inline-block",fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20,background:"rgba(232,160,48,.14)",color:"var(--gold)",border:"1px solid rgba(232,160,48,.3)",marginBottom:14}}>{p.highlight}</span>
                 <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:10}}>{p.title}</h3>
                 <p style={{fontSize:13,color:"var(--text-muted)",lineHeight:1.7}}>{p.description}</p>
@@ -1518,115 +1598,10 @@ const WhyUsPage=({setPage})=>{
           </div>
         </div>
       </section>
-      <section style={{background:"linear-gradient(160deg,#07050F,#100826,#07050F)",padding:"80px 0"}}>
-        <div style={{maxWidth:700,margin:"0 auto",padding:"0 24px"}}>
-          <div style={{padding:48,borderRadius:20,border:"2px solid var(--gold)",textAlign:"center",background:"linear-gradient(145deg,#14102E,#1C1444)"}}>
-            <div style={{fontSize:40,color:"var(--gold)",marginBottom:20}}>"</div>
-            <p style={{fontSize:18,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1.6,marginBottom:28,fontStyle:"italic"}}>{data.whyUs.testimonialHighlight.quote}</p>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:14}}>
-              <div style={{width:48,height:48,borderRadius:"50%",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16,color:"var(--navy-900)"}}>{data.whyUs.testimonialHighlight.avatar}</div>
-              <div style={{textAlign:"left"}}>
-                <p style={{fontWeight:700,fontSize:14,color:"var(--cream)"}}>{data.whyUs.testimonialHighlight.name}</p>
-                <p style={{fontSize:12,color:"var(--gold)"}}>{data.whyUs.testimonialHighlight.role}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
 
-/* ─── Team Page ───────────────────────────────────────────────────────────── */
-const deptColors={
-  "Leadership":      {bg:"rgba(232,160,48,.12)",color:"#F0B840",border:"rgba(232,160,48,.3)"},
-  "Operations":      {bg:"rgba(99,179,237,.10)",color:"#63B3ED",border:"rgba(99,179,237,.3)"},
-  "Design":          {bg:"rgba(154,117,235,.12)",color:"#B794F4",border:"rgba(154,117,235,.3)"},
-  "Engineering":     {bg:"rgba(72,199,142,.10)",color:"#48C78E",border:"rgba(72,199,142,.3)"},
-  "Client Success":  {bg:"rgba(252,129,74,.10)",color:"#FC814A",border:"rgba(252,129,74,.3)"},
-  "Green Initiatives":{bg:"rgba(72,199,142,.10)",color:"#48C78E",border:"rgba(72,199,142,.3)"},
-};
-
-const TeamPage=()=>{
-  const [selected,setSelected]=useState(null);
-  const [selIdx,setSelIdx]=useState(null);
-  const [filter,setFilter]=useState("All");
-  const depts=["All",...Array.from(new Set(data.team.map(m=>m.dept)))];
-  const filtered=filter==="All"?data.team:data.team.filter(m=>m.dept===filter);
-  return(
-    <div style={{paddingTop:64}}>
-      {selected&&<TeamModal member={selected} index={selIdx} onClose={()=>setSelected(null)}/>}
-      <section style={{position:"relative",padding:"128px 0",overflow:"hidden"}}>
-        <img src={IMGS.teamHero} alt="team" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}}/>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(7,5,15,.92),rgba(24,11,54,.78))"}}/>
-        <div style={{position:"relative",maxWidth:1280,margin:"0 auto",padding:"0 24px",zIndex:2}}>
-          <SectionLabel>Our People</SectionLabel>
-          <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2.8rem,6vw,5rem)",fontWeight:800,maxWidth:680,lineHeight:1.02,marginBottom:20}}>The Minds Behind BuildCore</h1>
-          <p style={{fontSize:16,color:"var(--text-soft)",maxWidth:520,lineHeight:1.7,marginBottom:40}}>200+ architects, engineers, designers, and specialists — united by one purpose: to deliver extraordinary.</p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:24}}>
-            {[{val:"200+",lbl:"Team Members"},{val:"8",lbl:"Departments"},{val:"15+",lbl:"Avg. Years Exp."},{val:"500+",lbl:"Projects Together"}].map((s,i)=>(
-              <div key={i} style={{borderLeft:"2px solid var(--gold)",paddingLeft:14}}>
-                <p style={{fontSize:26,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1}}>{s.val}</p>
-                <p style={{fontSize:11,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.1em",marginTop:2}}>{s.lbl}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <div style={{background:"linear-gradient(145deg,#110D28,#1C1244)",borderBottom:"1px solid var(--border)",position:"sticky",top:64,zIndex:30}}>
-        <div style={{maxWidth:1280,margin:"0 auto",padding:"14px 24px",display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",marginRight:8}}>Filter:</span>
-          {depts.map(d=><button key={d} className={`tab-btn ${filter===d?"active":""}`} onClick={()=>setFilter(d)}>{d}</button>)}
-          <span style={{marginLeft:"auto",fontSize:12,color:"var(--text-muted)"}}>{filtered.length} member{filtered.length!==1?"s":""}</span>
-        </div>
-      </div>
-      <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#160D30,#07050F)",padding:"64px 24px 96px"}}>
-        <div style={{maxWidth:1100,margin:"0 auto",display:"flex",flexDirection:"column",gap:18}}>
-          {filtered.map((m,idx)=>{
-            const origIdx=data.team.indexOf(m);
-            const dc=deptColors[m.dept]||{bg:"rgba(232,160,48,.1)",color:"var(--gold)",border:"rgba(232,160,48,.25)"};
-            return(
-              <div key={idx} className="team-hcard" onClick={()=>{setSelected(m);setSelIdx(origIdx);}}>
-                <div className="team-hcard-photo" style={{width:180,flexShrink:0,overflow:"hidden",position:"relative"}}>
-                  <img src={IMGS.team[origIdx]} alt={m.name} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"top",transition:"transform .4s",display:"block",minHeight:200}}/>
-                  <div style={{position:"absolute",inset:0,background:"linear-gradient(to right,transparent 60%,rgba(7,5,15,.5) 100%)"}}/>
-                </div>
-                <div style={{flex:1,padding:"24px 28px 24px 24px",display:"flex",flexDirection:"column",justifyContent:"space-between",minWidth:0}}>
-                  <div>
-                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:4}}>
-                      <div>
-                        <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,lineHeight:1.1,marginBottom:2}}>{m.name}</h3>
-                        <p style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>{m.role}</p>
-                      </div>
-                      <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",padding:"4px 12px",borderRadius:20,background:dc.bg,color:dc.color,border:`1px solid ${dc.border}`,whiteSpace:"nowrap"}}>{m.dept}</span>
-                    </div>
-                    <div style={{display:"flex",gap:20,marginBottom:10,marginTop:8}}>
-                      <span style={{fontSize:12,color:"var(--text-muted)"}}>⏱ {m.exp}</span>
-                      <span style={{fontSize:12,color:"var(--text-muted)"}}>🏗 {m.projects}+ projects</span>
-                    </div>
-                    <p style={{fontSize:13,color:"var(--text-soft)",lineHeight:1.65,marginBottom:12,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{m.bio}</p>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                      {m.skills.map((sk,j)=><span key={j} style={{fontSize:10,padding:"3px 10px",borderRadius:4,background:"var(--navy-700)",color:"var(--text-soft)",border:"1px solid var(--border-light)",fontWeight:600}}>{sk}</span>)}
-                    </div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:16,paddingTop:14,borderTop:"1px solid var(--border)"}}>
-                    <div style={{display:"flex",gap:8}}>
-                      <a href={m.linkedin} onClick={e=>e.stopPropagation()} target="_blank" rel="noopener noreferrer" className="social-icon" style={{width:32,height:32,borderRadius:6}}><LinkedInIcon size={15} color="#0A66C2"/></a>
-                      <a href={m.instagram||data.social.instagram} onClick={e=>e.stopPropagation()} target="_blank" rel="noopener noreferrer" className="social-icon" style={{width:32,height:32,borderRadius:6}}><InstagramIcon size={15} color="#E1306C"/></a>
-                    </div>
-                    <span style={{fontSize:12,fontWeight:700,color:"var(--gold)",display:"flex",alignItems:"center",gap:4}}>View Full Profile <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </div>
-  );
-};
-
-/* ─── Services Page ───────────────────────────────────────────────────────── */
 const ServicesPage=({setPage})=>(
   <div style={{paddingTop:64}}>
     <section style={{position:"relative",padding:"112px 0",overflow:"hidden"}}>
@@ -1635,7 +1610,6 @@ const ServicesPage=({setPage})=>(
       <div style={{position:"relative",maxWidth:1280,margin:"0 auto",padding:"0 24px",textAlign:"center",zIndex:2}}>
         <SectionLabel>What We Do</SectionLabel>
         <SectionHeading center>End-to-End Construction Services</SectionHeading>
-        <p style={{fontSize:14,color:"rgba(240,238,255,.75)",maxWidth:480,margin:"0 auto",lineHeight:1.7}}>From groundbreaking to final handover, BuildCore covers every aspect of your construction journey.</p>
       </div>
     </section>
     <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)",padding:"96px 0"}}>
@@ -1661,7 +1635,6 @@ const ServicesPage=({setPage})=>(
   </div>
 );
 
-/* ─── Pricing Page ────────────────────────────────────────────────────────── */
 const PricingPage=({setPage})=>(
   <div style={{paddingTop:64}}>
     <section style={{position:"relative",padding:"112px 0",overflow:"hidden"}}>
@@ -1670,7 +1643,6 @@ const PricingPage=({setPage})=>(
       <div style={{position:"relative",maxWidth:1280,margin:"0 auto",padding:"0 24px",textAlign:"center",zIndex:2}}>
         <SectionLabel>Transparent Pricing</SectionLabel>
         <SectionHeading center>Clear Plans. No Hidden Costs.</SectionHeading>
-        <p style={{fontSize:14,color:"rgba(240,238,255,.75)",maxWidth:480,margin:"0 auto",lineHeight:1.7}}>Per square foot pricing with full engineering, procurement, and PM included.</p>
       </div>
     </section>
     <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)",padding:"96px 0"}}>
@@ -1687,52 +1659,36 @@ const PricingPage=({setPage})=>(
               <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:28,flex:1}}>
                 {p.features.map((f,j)=><span key={j} style={{fontSize:13,color:"var(--cream)",display:"flex",alignItems:"flex-start",gap:8}}><span style={{color:"var(--gold)",flexShrink:0}}>✓</span>{f}</span>)}
               </div>
-              <button onClick={()=>setPage("Contact")} className={p.badge?"gold-btn":"outline-btn"} style={{width:"100%",padding:"12px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:12}}>{p.cta}</button>
-              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi!%20I'm%20interested%20in%20the%20${p.plan}%20plan.`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px",borderRadius:8,fontSize:12,fontWeight:700,background:"rgba(37,211,102,.12)",color:"#25D366",border:"1px solid rgba(37,211,102,.3)",textDecoration:"none"}}><WhatsAppSVG size={13}/> Ask on WhatsApp</a>
+              <button onClick={()=>setPage("Booking")} className={p.badge?"gold-btn":"outline-btn"} style={{width:"100%",padding:"12px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:12}}>{p.cta}</button>
             </div>
           </div>
         ))}
       </div>
-      <p style={{textAlign:"center",fontSize:12,color:"var(--text-muted)",marginTop:32}}>* Prices are indicative. Contact us for a site-specific detailed quotation.</p>
     </section>
   </div>
 );
 
-/* ─── Project Detail Page ─────────────────────────────────────────────────── */
 const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
   const [imgIdx,setImgIdx]=useState(0);
   if(!project)return null;
-  const gallery = [
-    IMGS.projects[projectIndex],
-    IMGS.projectDetails[1],
-    IMGS.projectDetails[2],
-    IMGS.projectDetails[3],
-  ];
+  const gallery=[IMGS.projects[projectIndex],IMGS.projectDetails[1],IMGS.projectDetails[2],IMGS.projectDetails[3]];
   return(
     <div style={{paddingTop:64}}>
       <section style={{position:"relative",height:480,overflow:"hidden"}}>
         <img key={imgIdx} src={gallery[imgIdx]} alt={project.title} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"opacity .5s"}}/>
         <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(7,5,15,.75) 0%,rgba(24,11,54,.5) 100%)"}}/>
         <div style={{position:"absolute",bottom:24,left:"50%",transform:"translateX(-50%)",display:"flex",gap:10,zIndex:5}}>
-          {gallery.map((_,i)=>(
-            <button key={i} onClick={()=>setImgIdx(i)} style={{width:i===imgIdx?28:10,height:10,borderRadius:5,background:i===imgIdx?"var(--gold)":"rgba(255,255,255,.5)",border:"none",cursor:"pointer",transition:"all .3s"}}/>
-          ))}
+          {gallery.map((_,i)=><button key={i} onClick={()=>setImgIdx(i)} style={{width:i===imgIdx?28:10,height:10,borderRadius:5,background:i===imgIdx?"var(--gold)":"rgba(255,255,255,.5)",border:"none",cursor:"pointer",transition:"all .3s"}}/>)}
         </div>
-        <button onClick={()=>setImgIdx(s=>(s-1+gallery.length)%gallery.length)} style={{position:"absolute",left:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer",backdropFilter:"blur(6px)"}}>‹</button>
-        <button onClick={()=>setImgIdx(s=>(s+1)%gallery.length)} style={{position:"absolute",right:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer",backdropFilter:"blur(6px)"}}>›</button>
-        <div style={{position:"absolute",top:20,left:24,zIndex:5,display:"flex",alignItems:"center",gap:6,background:"rgba(232,160,48,.92)",color:"var(--navy-900)",fontSize:11,fontWeight:700,padding:"5px 14px",borderRadius:20,textTransform:"uppercase"}}>
-          {project.type==="Residential"?<HomeIcon2 size={13} color="var(--navy-900)"/>:<BuildingIcon size={13} color="var(--navy-900)"/>}
-          {project.type}
-        </div>
-        <button onClick={onBack} className="back-btn" style={{position:"absolute",top:20,right:24,zIndex:5}}>
-          <ArrowLeftIcon size={15}/> Back to Projects
-        </button>
+        <button onClick={()=>setImgIdx(s=>(s-1+gallery.length)%gallery.length)} style={{position:"absolute",left:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer"}}>‹</button>
+        <button onClick={()=>setImgIdx(s=>(s+1)%gallery.length)} style={{position:"absolute",right:20,top:"50%",transform:"translateY(-50%)",zIndex:5,background:"rgba(232,160,48,.2)",border:"1px solid var(--gold)",color:"var(--gold)",width:42,height:42,borderRadius:"50%",fontSize:18,cursor:"pointer"}}>›</button>
+        <div style={{position:"absolute",top:20,left:24,zIndex:5,display:"flex",alignItems:"center",gap:6,background:"rgba(232,160,48,.92)",color:"var(--navy-900)",fontSize:11,fontWeight:700,padding:"5px 14px",borderRadius:20,textTransform:"uppercase"}}>{project.type}</div>
+        <button onClick={onBack} className="back-btn" style={{position:"absolute",top:20,right:24,zIndex:5}}><ArrowLeftIcon size={15}/> Back</button>
         <div style={{position:"absolute",bottom:60,left:0,right:0,padding:"0 40px",zIndex:5}}>
           <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:800,lineHeight:1.04,marginBottom:8}}>{project.title}</h1>
           <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
             <span style={{fontSize:13,color:"rgba(240,238,255,.75)"}}>{project.location}</span>
             <span style={{fontSize:13,color:"rgba(240,238,255,.75)"}}>· {project.year}</span>
-            <span style={{fontSize:13,color:"rgba(240,238,255,.75)"}}>· {project.area}</span>
           </div>
         </div>
       </section>
@@ -1740,7 +1696,7 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
         <div style={{maxWidth:1280,margin:"0 auto",padding:"0 40px",display:"grid",gridTemplateColumns:"1fr 380px",gap:48,alignItems:"start"}}>
           <div>
             <SectionLabel>Project Overview</SectionLabel>
-            <p style={{fontSize:15,color:"var(--text-soft)",lineHeight:1.85,marginBottom:32}}>{project.longDesc || project.description}</p>
+            <p style={{fontSize:15,color:"var(--text-soft)",lineHeight:1.85,marginBottom:32}}>{project.longDesc||project.description}</p>
             <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:16}}>Key Highlights</h3>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:40}}>
               {project.highlights.map((h,i)=>(
@@ -1750,34 +1706,13 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
                 </div>
               ))}
             </div>
-            <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,marginBottom:16}}>Project Gallery</h3>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:40}}>
-              {gallery.map((src,i)=>(
-                <div key={i} className="gallery-thumb" onClick={()=>setImgIdx(i)} style={{border:i===imgIdx?"2px solid var(--gold)":"2px solid transparent",borderRadius:10,overflow:"hidden",cursor:"pointer"}}>
-                  <img src={src} alt={`gallery-${i}`} style={{width:"100%",height:84,objectFit:"cover",display:"block"}}/>
-                </div>
-              ))}
-            </div>
-            <div style={{padding:32,borderRadius:16,border:"2px solid var(--gold)",background:"linear-gradient(145deg,#14102E,#1C1444)"}}>
-              <div style={{fontSize:32,color:"var(--gold)",marginBottom:12}}>"</div>
-              <p style={{fontSize:16,color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",lineHeight:1.65,marginBottom:20,fontStyle:"italic"}}>
-                The BuildCore team was phenomenal from day one. They delivered exactly what was promised — on time, within budget, and with quality that exceeded our expectations.
-              </p>
-              <div style={{display:"flex",alignItems:"center",gap:12}}>
-                <div style={{width:44,height:44,borderRadius:"50%",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:15,color:"var(--navy-900)"}}>{project.client.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
-                <div>
-                  <p style={{fontWeight:700,fontSize:14,color:"var(--cream)"}}>{project.client}</p>
-                  <p style={{fontSize:12,color:"var(--gold)"}}>{project.location}</p>
-                </div>
-              </div>
-            </div>
           </div>
           <div style={{position:"sticky",top:80}}>
             <div style={{padding:28,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",marginBottom:20}}>
               <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:20}}>Project Details</h3>
-              {[{label:"Client",val:project.client},{label:"Location",val:project.location},{label:"Project Type",val:project.type},{label:"Total Area",val:project.area},{label:"Duration",val:project.duration},{label:"Completed",val:project.year}].map((d,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"12px 0",borderBottom:"1px solid var(--border)",gap:12}}>
-                  <span style={{fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,flexShrink:0}}>{d.label}</span>
+              {[{label:"Client",val:project.client},{label:"Location",val:project.location},{label:"Type",val:project.type},{label:"Area",val:project.area},{label:"Duration",val:project.duration},{label:"Completed",val:project.year}].map((d,i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"12px 0",borderBottom:"1px solid var(--border)",gap:12}}>
+                  <span style={{fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700}}>{d.label}</span>
                   <span style={{fontSize:13,color:"var(--cream)",fontWeight:600,textAlign:"right"}}>{d.val}</span>
                 </div>
               ))}
@@ -1787,8 +1722,7 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              <button onClick={()=>setPage("Contact")} className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>Start a Similar Project →</button>
-              <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I%20saw%20your%20${encodeURIComponent(project.title)}%20project%20and%20I%27d%20like%20a%20quote.`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"14px",borderRadius:8,fontSize:13,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={15}/> Enquire on WhatsApp</a>
+              <button onClick={()=>setPage("Booking")} className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>Book Consultation →</button>
               <button onClick={onBack} className="outline-btn" style={{width:"100%",padding:"12px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><ArrowLeftIcon size={14}/> All Projects</button>
             </div>
           </div>
@@ -1798,7 +1732,6 @@ const ProjectDetailPage=({project,projectIndex,onBack,setPage})=>{
   );
 };
 
-/* ─── Projects Page ───────────────────────────────────────────────────────── */
 const ProjectsPage=({setPage})=>{
   const [filter,setFilter]=useState("All");
   const [selectedProject,setSelectedProject]=useState(null);
@@ -1819,32 +1752,26 @@ const ProjectsPage=({setPage})=>{
       </section>
       <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)",padding:"96px 0"}}>
         <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px"}}>
-          <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:40}}>
-            {["All","Residential","Commercial"].map(f=>(
-              <button key={f} className={`tab-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
-            ))}
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:48}}>
+            {["All","Residential","Commercial"].map(f=><button key={f} className={`tab-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>)}
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20,marginBottom:80}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20}}>
             {filtered.map((p,i)=>{
               const origIdx=data.projects.indexOf(p);
               return(
-                <div key={i} className="card-hover" style={{borderRadius:16,border:"1px solid var(--border-light)",overflow:"hidden",cursor:"pointer"}}
-                  onClick={()=>{setSelectedProject(p);setSelectedIndex(origIdx);window.scrollTo({top:0,behavior:"smooth"});}}>
+                <div key={i} className="card-hover" style={{borderRadius:16,border:"1px solid var(--border-light)",overflow:"hidden",cursor:"pointer"}} onClick={()=>{setSelectedProject(p);setSelectedIndex(origIdx);window.scrollTo({top:0,behavior:"smooth"});}}>
                   <div style={{position:"relative",height:220}}>
                     <img src={IMGS.projects[origIdx]} alt={p.title} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                     <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(7,5,15,.75) 0%,transparent 50%)"}}/>
-                    <div style={{position:"absolute",top:12,right:12,display:"flex",alignItems:"center",gap:5,fontSize:11,fontWeight:700,textTransform:"uppercase",padding:"4px 10px",borderRadius:20,background:"rgba(232,160,48,.92)",color:"var(--navy-900)"}}>
-                      {p.type==="Residential"?<HomeIcon2 size={12} color="var(--navy-900)"/>:<BuildingIcon size={12} color="var(--navy-900)"/>}
-                      {p.type}
-                    </div>
+                    <div style={{position:"absolute",top:12,right:12,fontSize:11,fontWeight:700,textTransform:"uppercase",padding:"4px 10px",borderRadius:20,background:"rgba(232,160,48,.92)",color:"var(--navy-900)"}}>{p.type}</div>
+                    <div style={{position:"absolute",bottom:12,left:16,fontSize:12,color:"rgba(240,238,255,.85)"}}>{p.location}</div>
                   </div>
                   <div style={{padding:24}}>
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                       <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,fontWeight:800}}>{p.title}</h3>
                       <span style={{fontSize:11,color:"var(--text-muted)"}}>{p.year}</span>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"var(--text-muted)",marginBottom:12}}>{p.area}<span>·</span>{p.location}</div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12}}>
                       <span style={{fontSize:16,fontWeight:800,color:"var(--gold)",fontFamily:"'Barlow Condensed',sans-serif"}}>{p.value}</span>
                       <span style={{fontSize:12,fontWeight:700,color:"var(--gold)"}}>View Details →</span>
                     </div>
@@ -1853,32 +1780,81 @@ const ProjectsPage=({setPage})=>{
               );
             })}
           </div>
-          <div style={{textAlign:"center",marginBottom:48}}>
-            <SectionLabel>Testimonials</SectionLabel>
-            <SectionHeading center>What Our Clients Say</SectionHeading>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20}}>
-            {data.testimonials.map((t,i)=>(
-              <div key={i} className="card-hover" style={{padding:32,borderRadius:16,border:"1px solid var(--border-light)"}}>
-                <Stars/>
-                <p style={{fontSize:14,color:"var(--cream)",lineHeight:1.8,margin:"16px 0",fontStyle:"italic"}}>"{t.feedback}"</p>
-                <div style={{display:"flex",alignItems:"center",gap:14,paddingTop:16,borderTop:"1px solid var(--border-light)"}}>
-                  <div style={{width:44,height:44,borderRadius:"50%",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:16,color:"var(--navy-900)"}}>{t.name.split(" ").map(n=>n[0]).join("")}</div>
-                  <div>
-                    <p style={{fontWeight:700,fontSize:14,color:"var(--cream)"}}>{t.name}</p>
-                    <p style={{fontSize:12,color:"var(--gold)"}}>{t.company} · {t.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
     </div>
   );
 };
 
-/* ─── FAQ Page ────────────────────────────────────────────────────────────── */
+const deptColors={
+  "Leadership":{bg:"rgba(232,160,48,.12)",color:"#F0B840",border:"rgba(232,160,48,.3)"},
+  "Operations":{bg:"rgba(99,179,237,.10)",color:"#63B3ED",border:"rgba(99,179,237,.3)"},
+  "Design":{bg:"rgba(154,117,235,.12)",color:"#B794F4",border:"rgba(154,117,235,.3)"},
+  "Engineering":{bg:"rgba(72,199,142,.10)",color:"#48C78E",border:"rgba(72,199,142,.3)"},
+  "Client Success":{bg:"rgba(252,129,74,.10)",color:"#FC814A",border:"rgba(252,129,74,.3)"},
+  "Green Initiatives":{bg:"rgba(72,199,142,.10)",color:"#48C78E",border:"rgba(72,199,142,.3)"},
+};
+
+const TeamPage=()=>{
+  const [selected,setSelected]=useState(null);
+  const [selIdx,setSelIdx]=useState(null);
+  const [filter,setFilter]=useState("All");
+  const depts=["All",...Array.from(new Set(data.team.map(m=>m.dept)))];
+  const filtered=filter==="All"?data.team:data.team.filter(m=>m.dept===filter);
+  return(
+    <div style={{paddingTop:64}}>
+      {selected&&<TeamModal member={selected} index={selIdx} onClose={()=>setSelected(null)}/>}
+      <section style={{position:"relative",padding:"128px 0",overflow:"hidden"}}>
+        <img src={IMGS.teamHero} alt="team" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(7,5,15,.92),rgba(24,11,54,.78))"}}/>
+        <div style={{position:"relative",maxWidth:1280,margin:"0 auto",padding:"0 24px",zIndex:2}}>
+          <SectionLabel>Our People</SectionLabel>
+          <h1 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:"clamp(2.8rem,6vw,5rem)",fontWeight:800,maxWidth:680,lineHeight:1.02,marginBottom:20}}>The Minds Behind BuildCore</h1>
+        </div>
+      </section>
+      <div style={{background:"linear-gradient(145deg,#110D28,#1C1244)",borderBottom:"1px solid var(--border)",position:"sticky",top:64,zIndex:30}}>
+        <div style={{maxWidth:1280,margin:"0 auto",padding:"14px 24px",display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+          {depts.map(d=><button key={d} className={`tab-btn ${filter===d?"active":""}`} onClick={()=>setFilter(d)}>{d}</button>)}
+        </div>
+      </div>
+      <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#160D30,#07050F)",padding:"64px 24px 96px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto",display:"flex",flexDirection:"column",gap:18}}>
+          {filtered.map((m,idx)=>{
+            const origIdx=data.team.indexOf(m);
+            const dc=deptColors[m.dept]||{bg:"rgba(232,160,48,.1)",color:"var(--gold)",border:"rgba(232,160,48,.25)"};
+            return(
+              <div key={idx} className="team-hcard" onClick={()=>{setSelected(m);setSelIdx(origIdx);}}>
+                <div className="team-hcard-photo" style={{width:180,flexShrink:0,overflow:"hidden",position:"relative"}}>
+                  <img src={IMGS.team[origIdx]} alt={m.name} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"top",transition:"transform .4s",display:"block",minHeight:200}}/>
+                </div>
+                <div style={{flex:1,padding:"24px 28px 24px 24px",display:"flex",flexDirection:"column",justifyContent:"space-between",minWidth:0}}>
+                  <div>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:4}}>
+                      <div>
+                        <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:22,fontWeight:800,lineHeight:1.1,marginBottom:2}}>{m.name}</h3>
+                        <p style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:700}}>{m.role}</p>
+                      </div>
+                      <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",padding:"4px 12px",borderRadius:20,background:dc.bg,color:dc.color,border:`1px solid ${dc.border}`,whiteSpace:"nowrap"}}>{m.dept}</span>
+                    </div>
+                    <p style={{fontSize:13,color:"var(--text-soft)",lineHeight:1.65,marginBottom:12,marginTop:8,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{m.bio}</p>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                      {m.skills.map((sk,j)=><span key={j} style={{fontSize:10,padding:"3px 10px",borderRadius:4,background:"var(--navy-700)",color:"var(--text-soft)",border:"1px solid var(--border-light)",fontWeight:600}}>{sk}</span>)}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:16,paddingTop:14,borderTop:"1px solid var(--border)"}}>
+                    <a href={m.linkedin} onClick={e=>e.stopPropagation()} target="_blank" rel="noopener noreferrer" className="social-icon" style={{width:32,height:32,borderRadius:6}}><LinkedInIcon size={15} color="#0A66C2"/></a>
+                    <span style={{fontSize:12,fontWeight:700,color:"var(--gold)"}}>View Full Profile →</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+};
+
 const FAQPage=({setPage})=>(
   <div style={{paddingTop:64}}>
     <section style={{position:"relative",padding:"112px 0",overflow:"hidden"}}>
@@ -1908,8 +1884,8 @@ const FAQPage=({setPage})=>(
           <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>Still have questions?</h3>
           <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Our team is happy to answer anything.</p>
           <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:12}}>
-            <button onClick={()=>setPage("Contact")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Contact Us</button>
-            <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:8,padding:"12px 28px",borderRadius:8,fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={14}/> WhatsApp</a>
+            <button onClick={()=>setPage("Booking")} className="gold-btn" style={{padding:"12px 28px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Book Consultation</button>
+            <button onClick={()=>setPage("Contact")} className="outline-btn" style={{padding:"12px 24px",borderRadius:8,fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase"}}>Contact Us</button>
           </div>
         </div>
       </div>
@@ -1917,7 +1893,6 @@ const FAQPage=({setPage})=>(
   </div>
 );
 
-/* ─── Contact Page ────────────────────────────────────────────────────────── */
 const ContactPage=()=>{
   const [form,setForm]=useState({name:"",email:"",phone:"",service:"",message:""});
   const [sent,setSent]=useState(false);
@@ -1930,7 +1905,6 @@ const ContactPage=()=>{
         <div style={{position:"relative",maxWidth:1280,margin:"0 auto",padding:"0 24px",textAlign:"center",zIndex:2}}>
           <SectionLabel>Get In Touch</SectionLabel>
           <SectionHeading center>Let's Build Something Great Together</SectionHeading>
-          <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:16,padding:"12px 24px",borderRadius:30,background:"#25D366",color:"#fff",textDecoration:"none",fontSize:13,fontWeight:700}}><WhatsAppSVG size={16}/> Quick Chat on WhatsApp</a>
         </div>
       </section>
       <section style={{background:"linear-gradient(160deg,#07050F,#0F0A20,#1A0D3A,#07050F)",padding:"96px 0"}}>
@@ -1952,56 +1926,34 @@ const ContactPage=()=>{
             </div>
           </div>
           <div>
-            <div style={{padding:36,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)",marginBottom:20}}>
+            <div style={{padding:36,borderRadius:16,border:"1px solid var(--border-light)",background:"linear-gradient(145deg,#140E2E,#1C1542)"}}>
               {sent?(
                 <div style={{textAlign:"center",padding:"48px 0"}}>
                   <p style={{fontSize:48,marginBottom:16}}>✅</p>
                   <h3 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>Message Sent!</h3>
                   <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:24}}>Our team will reach out within 24 hours.</p>
-                  <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 20px",borderRadius:8,background:"#25D366",color:"#fff",textDecoration:"none",fontSize:13,fontWeight:700}}><WhatsAppSVG size={14}/> Follow Up on WhatsApp</a>
                 </div>
               ):(
                 <form onSubmit={e=>{e.preventDefault();setSent(true);}} style={{display:"flex",flexDirection:"column",gap:16}}>
                   <h4 style={{color:"var(--cream)",fontFamily:"'Barlow Condensed',sans-serif",fontSize:20,fontWeight:800,marginBottom:4}}>Send Us a Message</h4>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-                    <div>
-                      <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name *</label>
-                      <input required placeholder="Ravi Kumar" value={form.name} onChange={e=>update("name",e.target.value)}/>
-                    </div>
-                    <div>
-                      <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email *</label>
-                      <input type="email" required placeholder="you@email.com" value={form.email} onChange={e=>update("email",e.target.value)}/>
-                    </div>
+                    <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Full Name *</label>
+                      <input required placeholder="Ravi Kumar" value={form.name} onChange={e=>update("name",e.target.value)}/></div>
+                    <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Email *</label>
+                      <input type="email" required placeholder="you@email.com" value={form.email} onChange={e=>update("email",e.target.value)}/></div>
                   </div>
-                  <div>
-                    <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
-                    <input type="tel" placeholder="+91 98765 43210" value={form.phone} onChange={e=>update("phone",e.target.value)}/>
-                  </div>
-                  <div>
-                    <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Service Interested In</label>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Phone</label>
+                    <input type="tel" placeholder="+91 98765 43210" value={form.phone} onChange={e=>update("phone",e.target.value)}/></div>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Service</label>
                     <select value={form.service} onChange={e=>update("service",e.target.value)}>
                       <option value="">Select a service</option>
                       {data.services.map(s=><option key={s.title} value={s.title}>{s.title}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Message *</label>
-                    <textarea required rows={4} placeholder="Tell us about your project..." value={form.message} onChange={e=>update("message",e.target.value)}/>
-                  </div>
+                    </select></div>
+                  <div><label style={{display:"block",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em",color:"var(--text-muted)",fontWeight:700,marginBottom:8}}>Message *</label>
+                    <textarea required rows={4} placeholder="Tell us about your project..." value={form.message} onChange={e=>update("message",e.target.value)}/></div>
                   <button type="submit" className="gold-btn" style={{width:"100%",padding:"14px",borderRadius:8,fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase"}}>Send Message →</button>
-                  <a href={`https://wa.me/${data.contact.whatsapp}?text=Hi%20BuildCore!%20I'd%20like%20a%20quote.`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"14px",borderRadius:8,fontSize:13,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",background:"#25D366",color:"#fff",textDecoration:"none"}}><WhatsAppSVG size={15}/> Message on WhatsApp Instead</a>
                 </form>
               )}
-            </div>
-            <div style={{borderRadius:14,overflow:"hidden",border:"1px solid var(--border-light)"}}>
-              <div style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:12,background:"linear-gradient(145deg,#140E2E,#1C1542)",borderBottom:"1px solid var(--border)"}}>
-                <span style={{fontSize:18}}>📍</span>
-                <div>
-                  <p style={{fontSize:13,fontWeight:700,color:"var(--cream)"}}>Our Office — Brigade Road, Bangalore</p>
-                  <a href="https://maps.google.com/?q=Brigade+Road+Bangalore" target="_blank" rel="noopener noreferrer" style={{fontSize:12,fontWeight:600,color:"var(--gold)",textDecoration:"none"}}>Open in Google Maps →</a>
-                </div>
-              </div>
-              <iframe title="BuildCore Location" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.985285566604!2d77.59219931469194!3d12.971611290856!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae167aded5e74f%3A0x9f155679a0a93e3!2sBrigade%20Rd%2C%20Bengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin" width="100%" height="260" style={{border:0,display:"block"}} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"/>
             </div>
           </div>
         </div>
@@ -2011,10 +1963,12 @@ const ContactPage=()=>{
 };
 
 /* ─── App Root ────────────────────────────────────────────────────────────── */
-function AppInner() {
+export default function App(){
   const [page,setPage]=useState("Home");
   const [scrolled,setScrolled]=useState(false);
   const [showSplash,setShowSplash]=useState(true);
+  const [user,setUser]=useState(null);
+  const [showAuth,setShowAuth]=useState(false);
 
   useEffect(()=>{
     document.title="BuildCore Constructions | Premium Construction Services";
@@ -2030,6 +1984,10 @@ function AppInner() {
 
   useEffect(()=>{window.scrollTo({top:0,behavior:"smooth"});},[page]);
 
+  const handleLogin=(u)=>{ setUser(u); setPage("Profile"); };
+  const handleLogout=()=>{ setUser(null); setPage("Home"); };
+  const handleUpdateUser=(u)=>setUser(u);
+
   const renderPage=()=>{
     const p={setPage};
     switch(page){
@@ -2040,10 +1998,12 @@ function AppInner() {
       case"Team":    return <TeamPage/>;
       case"Pricing": return <PricingPage {...p}/>;
       case"Projects":return <ProjectsPage {...p}/>;
+      case"Booking": return <BookingPage setPage={setPage} user={user} onOpenAuth={()=>setShowAuth(true)}/>;
       case"FAQ":     return <FAQPage {...p}/>;
       case"Contact": return <ContactPage/>;
-      case"Login":   return <LoginPage {...p}/>;
-      case"Profile": return <ProfilePage {...p}/>;
+      case"Profile": return user
+        ? <ProfilePage user={user} onUpdateUser={handleUpdateUser} onLogout={handleLogout} setPage={setPage}/>
+        : <HomePage {...p}/>;
       default:       return <HomePage {...p}/>;
     }
   };
@@ -2051,19 +2011,12 @@ function AppInner() {
   return(
     <div style={{background:"var(--grad-bg)",minHeight:"100vh",color:"var(--cream)"}}>
       <FontLoader/>
-      {showSplash && <SplashScreen/>}
-      <Navbar page={page} setPage={setPage} scrolled={scrolled}/>
+      {showSplash&&<SplashScreen/>}
+      {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onLogin={handleLogin}/>}
+      <Navbar page={page} setPage={setPage} scrolled={scrolled} user={user} onOpenAuth={()=>setShowAuth(true)} onLogout={handleLogout}/>
       <main>{renderPage()}</main>
       <Footer setPage={setPage}/>
       <WhatsAppFloat/>
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
   );
 }
